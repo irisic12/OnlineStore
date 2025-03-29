@@ -1,0 +1,1247 @@
+package com.example.demo.entities;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "Category")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Category {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    private String description;
+}
+
+package com.example.demo.entities;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.Date;
+
+@Entity
+@Table(name = "Customer")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Customer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+    private String email;
+
+    @Column(nullable = false)
+    private String phone;
+
+    @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
+    private Date registrationDate;
+
+    public void setRegistrationDate(Date registrationDate) {
+        if (registrationDate != null && registrationDate.after(new Date())) {
+            throw new IllegalArgumentException("Registration date must be in the past or present.");
+        }
+        this.registrationDate = registrationDate;
+    }
+}
+
+package com.example.demo.entities;
+
+import com.example.demo.enums.OrderStatus;
+import com.example.demo.enums.PaymentMethod;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+@Entity
+@Table(name = "Orders")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private Date orderDate;
+
+    @Column(nullable = false)
+    private BigDecimal totalAmount;
+
+    @Column(nullable = false)
+    private OrderStatus status;
+
+    @Column(nullable = false)
+    private String shippingAddress;
+
+    @Column(nullable = false)
+    private PaymentMethod paymentMethod;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
+    @OneToMany(mappedBy = "order")
+    private List<OrderItem> orderItems;
+
+    public void setOrderDate(Date orderDate) {
+        if (orderDate != null && orderDate.after(new Date())) {
+            throw new IllegalArgumentException("Order date must be in the past or present.");
+        }
+        this.orderDate = orderDate;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Total amount must be greater than zero.");
+        }
+        this.totalAmount = totalAmount;
+    }
+}
+
+package com.example.demo.entities;
+
+import com.example.demo.helpClass.OrderItemId;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "OrderItem")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class OrderItem {
+    @EmbeddedId
+    private OrderItemId id = new OrderItemId();
+
+    @Column(nullable = false)
+    private Integer quantity;
+
+    public void setQuantity(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero.");
+        }
+        this.quantity = quantity;
+    }
+}
+
+package com.example.demo.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "Product")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Product {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    @Column(nullable = false)
+    private BigDecimal price;
+
+    private String description;
+    private String imageURL;
+    private BigDecimal stockQuantity;
+
+    @Column(nullable = false)
+    private String unitOfMeasurement;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    public void setPrice(BigDecimal price) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be greater than zero.");
+        }
+        this.price = price;
+    }
+
+    public void setStockQuantity(BigDecimal stockQuantity) {
+        if (stockQuantity != null && stockQuantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Stock quantity must be non-negative.");
+        }
+        this.stockQuantity = stockQuantity;
+    }
+}
+
+package com.example.demo.helpClass;
+
+import com.example.demo.entities.Order;
+import com.example.demo.entities.Product;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.io.Serializable;
+import java.util.Objects;
+
+@Embeddable
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class OrderItemId implements Serializable {
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OrderItemId that = (OrderItemId) o;
+        return Objects.equals(order, that.order) && Objects.equals(product, that.product);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(order, product);
+    }
+}
+
+package com.example.demo.enums;
+
+public enum OrderStatus {
+    CREATED,
+    PAID,
+    IN_PROCESSING,
+    SENT,
+    DELIVERED,
+    CANCELLED
+}
+
+package com.example.demo.enums;
+
+public enum PaymentMethod {
+    CREDIT_CARD,
+    CASH
+}
+
+package com.example.demo.repositories;
+
+import com.example.demo.entities.Category;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface CategoryRepository extends JpaRepository<Category, Long> {
+    // Найти категорию по имени (точное совпадение)
+    Category findByName(String name);
+
+    // Найти категории, имя которых содержит определенную строку (регистронезависимый поиск)
+    List<Category> findByNameContainingIgnoreCase(String name);
+}
+
+package com.example.demo.repositories;
+
+import com.example.demo.entities.Category;
+import com.example.demo.entities.Customer;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
+    // Найти клиентов по фамилии
+    List<Customer> findByLastName(String lastName);
+
+    // Найти клиента по email (возвращает Optional, так как email может быть null)
+    Optional<Customer> findByEmail(String email);
+}
+
+package com.example.demo.repositories;
+
+import com.example.demo.entities.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.example.demo.enums.OrderStatus;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
+
+@Repository
+public interface CustomOrderRepository extends JpaRepository<Order, Long>, ReportRepository{
+    @Override
+    @Query("SELECT oi.product.name, SUM(oi.quantity * oi.product.price) FROM OrderItem oi " +
+            "JOIN oi.order o " +
+            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
+            "GROUP BY oi.product.name")
+    List<Object[]> findSalesByProductForPeriod(
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+    @Override
+    @Query("SELECT oi.product.category.name, SUM(oi.quantity * oi.product.price) FROM OrderItem oi " +
+            "JOIN oi.order o " +
+            "WHERE (:startDate IS NULL OR :endDate IS NULL OR o.orderDate BETWEEN :startDate AND :endDate) " +
+            "GROUP BY oi.product.category.name")
+    List<Object[]> findSalesByCategoryForPeriod(
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+    @Override
+    @Query("SELECT o.customer.firstName, o.customer.lastName, SUM(o.totalAmount) " +
+            "FROM Order o " +
+            "WHERE (:startDate IS NULL OR :endDate IS NULL OR o.orderDate BETWEEN :startDate AND :endDate) " +
+            "GROUP BY o.customer.firstName, o.customer.lastName")
+    List<Object[]> findSalesByCustomerForPeriod(
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+    @Override
+    @Query("SELECT oi.product.name, SUM(oi.quantity) AS totalQuantity " +
+            "FROM OrderItem oi " +
+            "JOIN oi.order o " +
+            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
+            "GROUP BY oi.product.name " +
+            "ORDER BY totalQuantity DESC")
+    List<Object[]> findTopNBestSellingProductsForPeriod(
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate,
+            int topN
+    );
+
+    @Override
+    @Query("SELECT FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate), SUM(o.totalAmount) " +
+            "FROM Order o " +
+            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
+            "GROUP BY FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate) " +
+            "ORDER BY FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate)")
+    List<Object[]> getSalesDynamicsByMonth(
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+    @Override
+    @Query("SELECT FUNCTION('YEAR', o.orderDate), SUM(o.totalAmount) " +
+            "FROM Order o " +
+            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
+            "GROUP BY FUNCTION('YEAR', o.orderDate) " +
+            "ORDER BY FUNCTION('YEAR', o.orderDate)")
+    List<Object[]> getSalesDynamicsByYear(
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+    @Override
+    @Query("SELECT o FROM Order o WHERE o.status = com.example.demo.enums.OrderStatus.CREATED AND o.orderDate < :dateThreshold")
+    List<Order> findPendingPaymentOrdersOlderThan(@Param("dateThreshold") Date dateThreshold);
+}
+
+package com.example.demo.repositories;
+
+import com.example.demo.entities.OrderItem;
+import com.example.demo.helpClass.OrderItemId;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface OrderItemRepository extends JpaRepository<OrderItem, OrderItemId> {
+    // Найти все OrderItem для определенного заказа
+    List<OrderItem> findById_OrderId(Long orderId);
+
+    // Найти все OrderItem для определенного продукта
+    List<OrderItem> findById_ProductId(Long productId);
+}
+
+package com.example.demo.repositories;
+
+import com.example.demo.entities.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+import com.example.demo.enums.OrderStatus;
+
+public interface OrderRepository extends JpaRepository<Order, Long> {
+    // Найти заказы для определенного клиента
+    List<Order> findByCustomer_Id(Long customerId);
+
+    // Найти заказы, созданные в определенном диапазоне дат
+    List<Order> findByOrderDateBetween(Date startDate, Date endDate);
+}
+
+package com.example.demo.repositories;
+
+import com.example.demo.entities.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    // Найти продукт по имени (точное совпадение)
+    Product findByName(String name);
+
+    // Найти продукты, имя которых содержит определенную строку (регистронезависимый поиск)
+    List<Product> findByNameContainingIgnoreCase(String name);
+
+    // Найти продукты, цена которых больше определенной суммы
+    List<Product> findByPriceGreaterThan(BigDecimal price);
+
+}
+
+package com.example.demo.repositories;
+
+import com.example.demo.entities.Order;
+
+import java.util.Date;
+import java.util.List;
+
+public interface ReportRepository {
+
+    // Отчет 1: Продажи по товарам за период
+    List<Object[]> findSalesByProductForPeriod(Date startDate, Date endDate);
+
+    // Отчет 2: Продажи по категориям товаров за период
+    List<Object[]> findSalesByCategoryForPeriod(Date startDate, Date endDate);
+
+    // Отчет 3: Продажи по клиентам за период
+    List<Object[]> findSalesByCustomerForPeriod(Date startDate, Date endDate);
+
+    // Отчет 4: Список самых продаваемых товаров (Топ-N) за период
+    List<Object[]> findTopNBestSellingProductsForPeriod(Date startDate, Date endDate, int topN);
+
+    // Отчет 5: Динамика продаж по месяцам
+    List<Object[]> getSalesDynamicsByMonth(Date startDate, Date endDate);
+
+    // Отчет 5: Динамика продаж по годам
+    List<Object[]> getSalesDynamicsByYear(Date startDate, Date endDate);
+
+    // Отчет 6: Заказы в статусе "Ожидание оплаты" более X дней
+    List<Order> findPendingPaymentOrdersOlderThan(Date dateThreshold);
+}
+
+package com.example.demo.service;
+
+import com.example.demo.entities.Category;
+import com.example.demo.repositories.CategoryRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class CategoryService {
+    private final CategoryRepository categoryRepository;
+
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
+
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
+    }
+
+    public Optional<Category> getCategoryById(Long id) {
+        return categoryRepository.findById(id);
+    }
+
+    public Category getCategoryByName(String name) {
+        return categoryRepository.findByName(name);
+    }
+
+    public List<Category> searchCategoriesByName(String name) {
+        return categoryRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    public Category updateCategory(Long id, Category updatedCategory) {
+        return categoryRepository.findById(id)
+                .map(category -> {
+                    category.setName(updatedCategory.getName());
+                    category.setDescription(updatedCategory.getDescription());
+                    return categoryRepository.save(category);
+                })
+                .orElse(null);
+    }
+
+    public void deleteCategory(Long id) {
+        categoryRepository.deleteById(id);
+    }
+}
+
+package com.example.demo.service;
+
+import com.example.demo.entities.Customer;
+import com.example.demo.repositories.CustomerRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public class CustomerService {
+    private final CustomerRepository customerRepository;
+
+    public CustomerService(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+    }
+
+    public Customer createCustomer(Customer customer) {
+        return customerRepository.save(customer);
+    }
+
+    public Optional<Customer> getCustomerById(Long id) {
+        return customerRepository.findById(id);
+    }
+
+    public List<Customer> getCustomersByLastName(String lastName) {
+        return customerRepository.findByLastName(lastName);
+    }
+
+    public Optional<Customer> getCustomerByEmail(String email) {
+        return customerRepository.findByEmail(email);
+    }
+
+    public Customer updateCustomer(Long id, Customer updatedCustomer) {
+        return customerRepository.findById(id)
+                .map(customer -> {
+                    customer.setFirstName(updatedCustomer.getFirstName());
+                    customer.setLastName(updatedCustomer.getLastName());
+                    customer.setEmail(updatedCustomer.getEmail());
+                    customer.setPhone(updatedCustomer.getPhone());
+                    customer.setAddress(updatedCustomer.getAddress());
+                    customer.setRegistrationDate(updatedCustomer.getRegistrationDate());
+                    return customerRepository.save(customer);
+                })
+                .orElse(null);
+    }
+
+    public void deleteCustomer(Long id) {
+        customerRepository.deleteById(id);
+    }
+}
+
+package com.example.demo.service;
+
+import com.example.demo.entities.OrderItem;
+import com.example.demo.helpClass.OrderItemId;
+import com.example.demo.repositories.OrderItemRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public class OrderItemService {
+    private final OrderItemRepository orderItemRepository;
+
+    public OrderItemService(OrderItemRepository orderItemRepository) {
+        this.orderItemRepository = orderItemRepository;
+    }
+
+    public OrderItem createOrderItem(OrderItem orderItem) {
+        return orderItemRepository.save(orderItem);
+    }
+
+    public Optional<OrderItem> getOrderItemById(OrderItemId id) {
+        return orderItemRepository.findById(id);
+    }
+
+    public List<OrderItem> getOrderItemsByOrderId(Long orderId) {
+        return orderItemRepository.findById_OrderId(orderId);
+    }
+
+    public List<OrderItem> getOrderItemsByProductId(Long productId) {
+        return orderItemRepository.findById_ProductId(productId);
+    }
+
+    public void deleteOrderItem(OrderItemId id) {
+        orderItemRepository.deleteById(id);
+    }
+}
+
+package com.example.demo.service;
+
+import com.example.demo.entities.Order;
+import com.example.demo.repositories.OrderRepository;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+public class OrderService {
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    public Order createOrder(Order order) {
+        return orderRepository.save(order);
+    }
+
+    public Optional<Order> getOrderById(Long id) {
+        return orderRepository.findById(id);
+    }
+
+    public List<Order> getOrdersByCustomerId(Long customerId) {
+        return orderRepository.findByCustomer_Id(customerId);
+    }
+
+    public List<Order> getOrdersByDateRange(Date startDate, Date endDate) {
+        return orderRepository.findByOrderDateBetween(startDate, endDate);
+    }
+
+    public Order updateOrder(Long id, Order updatedOrder) {
+        return orderRepository.findById(id)
+                .map(order -> {
+                    order.setOrderDate(updatedOrder.getOrderDate());
+                    order.setTotalAmount(updatedOrder.getTotalAmount());
+                    order.setStatus(updatedOrder.getStatus());
+                    order.setShippingAddress(updatedOrder.getShippingAddress());
+                    return orderRepository.save(order);
+                })
+                .orElse(null);
+    }
+
+    public void deleteOrder(Long id) {
+        orderRepository.deleteById(id);
+    }
+}
+
+package com.example.demo.service;
+
+import com.example.demo.entities.Product;
+import com.example.demo.repositories.ProductRepository;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+public class ProductService {
+    private final ProductRepository productRepository;
+
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    public Product createProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    public Optional<Product> getProductById(Long id) {
+        return productRepository.findById(id);
+    }
+
+    public Product getProductByName(String name) {
+        return productRepository.findByName(name);
+    }
+
+    public List<Product> searchProductsByName(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    public List<Product> getProductsWithPriceGreaterThan(BigDecimal price) {
+        return productRepository.findByPriceGreaterThan(price);
+    }
+
+    public Product updateProduct(Long id, Product updatedProduct) {
+        return productRepository.findById(id)
+                .map(product -> {
+                    product.setName(updatedProduct.getName());
+                    product.setPrice(updatedProduct.getPrice());
+                    product.setDescription(updatedProduct.getDescription());
+                    product.setImageURL(updatedProduct.getImageURL());
+                    product.setStockQuantity(updatedProduct.getStockQuantity());
+                    product.setUnitOfMeasurement(updatedProduct.getUnitOfMeasurement());
+                    return productRepository.save(product);
+                })
+                .orElse(null);
+    }
+
+    public void deleteProduct(Long id) {
+        productRepository.deleteById(id);
+    }
+
+    public ProductRepository getProductRepository() {
+        return productRepository;
+    }
+}
+
+package com.example.demo.service;
+
+import com.example.demo.entities.*;
+import com.example.demo.enums.OrderStatus;
+import com.example.demo.repositories.CategoryRepository;
+import com.example.demo.repositories.CustomOrderRepository;
+import com.example.demo.repositories.CustomerRepository;
+import com.example.demo.repositories.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class ReportService {
+    private final CustomOrderRepository orderRepository;
+
+    @Autowired
+    public ReportService(CustomOrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    public List<Object[]> getSalesByProductReport(Date startDate, Date endDate) {
+        return orderRepository.findSalesByProductForPeriod(startDate, endDate);
+    }
+
+    public List<Object[]> getSalesByCategoryReport(Date startDate, Date endDate) {
+        return orderRepository.findSalesByCategoryForPeriod(startDate, endDate);
+    }
+
+    public List<Object[]> getSalesByCustomerReport(Date startDate, Date endDate) {
+        return orderRepository.findSalesByCustomerForPeriod(startDate, endDate);
+    }
+
+    public List<Object[]> getTopNBestSellingProductsReport(Date startDate, Date endDate, int topN) {
+        return orderRepository.findTopNBestSellingProductsForPeriod(startDate, endDate, 10); // Example: Top 10
+    }
+
+    public List<Object[]> getSalesDynamicsByMonthReport(Date startDate, Date endDate) {
+        return orderRepository.getSalesDynamicsByMonth(startDate, endDate);
+    }
+
+    public List<Object[]> getSalesDynamicsByYearReport(Date startDate, Date endDate) {
+        return orderRepository.getSalesDynamicsByYear(startDate, endDate);
+    }
+
+    public List<Order> getPendingPaymentOrdersOlderThanReport(int days) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(java.util.Calendar.DATE, -days);
+        Date dateThreshold = cal.getTime();
+
+        return orderRepository.findPendingPaymentOrdersOlderThan(dateThreshold);
+    }
+}
+
+package com.example.demo.controllers;
+
+import com.example.demo.entities.Category;
+import com.example.demo.service.CategoryService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/categories")
+public class CategoryController {
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Category> createCategory(@RequestBody Category category) {
+        Category createdCategory = categoryService.createCategory(category);
+        return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
+        Optional<Category> category = categoryService.getCategoryById(id);
+        return category.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<Category> getCategoryByName(@PathVariable String name) {
+        Category category = categoryService.getCategoryByName(name);
+        if (category != null) {
+            return new ResponseEntity<>(category, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Category>> searchCategoriesByName(@RequestParam String name) {
+        List<Category> categories = categoryService.searchCategoriesByName(name);
+        return new ResponseEntity<>(categories, HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
+        Category category = categoryService.updateCategory(id, updatedCategory);
+        if (category != null) {
+            return new ResponseEntity<>(category, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+}
+
+package com.example.demo.controllers;
+
+import com.example.demo.entities.Customer;
+import com.example.demo.service.CustomerService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/customers")
+public class CustomerController {
+    private final CustomerService customerService;
+
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
+        Customer createdCustomer = customerService.createCustomer(customer);
+        return new ResponseEntity<>(createdCustomer, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+        Optional<Customer> customer = customerService.getCustomerById(id);
+        return customer.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/lastName/{lastName}")
+    public ResponseEntity<List<Customer>> getCustomersByLastName(@PathVariable String lastName) {
+        List<Customer> customers = customerService.getCustomersByLastName(lastName);
+        return new ResponseEntity<>(customers, HttpStatus.OK);
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Customer> getCustomerByEmail(@PathVariable String email) {
+        Optional<Customer> customer = customerService.getCustomerByEmail(email);
+        return customer.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
+        Customer customer = customerService.updateCustomer(id, updatedCustomer);
+        if (customer != null) {
+            return new ResponseEntity<>(customer, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+        customerService.deleteCustomer(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+}
+
+package com.example.demo.controllers;
+
+import com.example.demo.entities.Order;
+import com.example.demo.service.OrderService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+        Order createdOrder = orderService.createOrder(order);
+        return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+        Optional<Order> order = orderService.getOrderById(id);
+        return order.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<Order>> getOrdersByCustomerId(@PathVariable Long customerId) {
+        List<Order> orders = orderService.getOrdersByCustomerId(customerId);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {
+        Order order = orderService.updateOrder(id, updatedOrder);
+        if (order != null) {
+            return new ResponseEntity<>(order, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+}
+
+package com.example.demo.controllers;
+
+import com.example.demo.entities.Order;
+import com.example.demo.entities.OrderItem;
+import com.example.demo.entities.Product;
+import com.example.demo.helpClass.OrderItemId;
+import com.example.demo.service.OrderItemService;
+import com.example.demo.service.OrderService;
+import com.example.demo.service.ProductService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/order-items")
+public class OrderItemController {
+    private final OrderItemService orderItemService;
+    private final OrderService orderService;
+    private final ProductService productService;
+
+    public OrderItemController(OrderItemService orderItemService,
+                               OrderService orderService,
+                               ProductService productService) {
+        this.orderItemService = orderItemService;
+        this.orderService = orderService;
+        this.productService = productService;
+    }
+
+    @PostMapping("/{orderId}/{productId}")
+    public ResponseEntity<OrderItem> createOrderItem(
+            @PathVariable Long orderId,
+            @PathVariable Long productId,
+            @RequestBody Integer quantity) {
+
+        Optional<Order> order = orderService.getOrderById(orderId);
+        Optional<Product> product = productService.getProductById(productId);
+
+        if (!order.isPresent() || !product.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        OrderItem orderItem = new OrderItem();
+        OrderItemId orderItemId = new OrderItemId();
+        orderItemId.setOrder(order.get());
+        orderItemId.setProduct(product.get());
+        orderItem.setId(orderItemId);
+        try {
+            orderItem.setQuantity(quantity);
+        } catch(IllegalArgumentException e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+
+        OrderItem createdOrderItem = orderItemService.createOrderItem(orderItem);
+        return new ResponseEntity<>(createdOrderItem, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{orderId}/{productId}")
+    public ResponseEntity<OrderItem> getOrderItemById(
+            @PathVariable Long orderId,
+            @PathVariable Long productId) {
+
+        Optional<Order> order = orderService.getOrderById(orderId);
+        Optional<Product> product = productService.getProductById(productId);
+        if (!order.isPresent() || !product.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        OrderItemId orderItemId = new OrderItemId();
+        orderItemId.setOrder(order.get());
+        orderItemId.setProduct(product.get());
+
+        Optional<OrderItem> orderItem = orderItemService.getOrderItemById(orderItemId);
+
+        return orderItem.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<List<OrderItem>> getOrderItemsByOrderId(@PathVariable Long orderId) {
+        List<OrderItem> orderItems = orderItemService.getOrderItemsByOrderId(orderId);
+        return new ResponseEntity<>(orderItems, HttpStatus.OK);
+    }
+
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<OrderItem>> getOrderItemsByProductId(@PathVariable Long productId) {
+        List<OrderItem> orderItems = orderItemService.getOrderItemsByProductId(productId);
+        return new ResponseEntity<>(orderItems, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{orderId}/{productId}")
+    public ResponseEntity<Void> deleteOrderItem(
+            @PathVariable Long orderId,
+            @PathVariable Long productId) {
+
+        Optional<Order> order = orderService.getOrderById(orderId);
+        Optional<Product> product = productService.getProductById(productId);
+        if (!order.isPresent() || !product.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        OrderItemId id = new OrderItemId();
+        Order orderEntity = order.get();
+        Product productEntity = product.get();
+
+        id.setOrder(orderEntity);
+        id.setProduct(productEntity);
+
+        orderItemService.deleteOrderItem(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+}
+
+package com.example.demo.controllers;
+
+import com.example.demo.entities.Product;
+import com.example.demo.service.ProductService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+        Product createdProduct = productService.createProduct(product);
+        return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        Optional<Product> product = productService.getProductById(id);
+        return product.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<Product> getProductByName(@PathVariable String name) {
+        Product product = productService.getProductByName(name);
+        if (product != null) {
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchProductsByName(@RequestParam("query") String name) {
+        List<Product> products = productService.searchProductsByName(name);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/price/greaterThan/{price}")
+    public ResponseEntity<List<Product>> getProductsWithPriceGreaterThan(@PathVariable BigDecimal price) {
+        List<Product> products = productService.getProductsWithPriceGreaterThan(price);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updatedProduct) {
+        Product product = productService.updateProduct(id, updatedProduct);
+        if (product != null) {
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Product>> getAllProducts() {
+        return new ResponseEntity<>(productService.getProductRepository().findAll(), HttpStatus.OK);
+    }
+}
+
+package com.example.demo.controllers;
+
+import com.example.demo.entities.Order;
+import com.example.demo.service.ReportService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Date;
+import java.util.List;
+
+@RestController
+public class ReportController {
+    private final ReportService reportService;
+
+    @Autowired
+    public ReportController(ReportService reportService) {
+        this.reportService = reportService;
+    }
+
+    @GetMapping("/reports/sales-by-product")
+    public ResponseEntity<List<Object[]>> getSalesByProduct(
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+
+        List<Object[]> salesData = reportService.getSalesByProductReport(startDate, endDate);
+        return ResponseEntity.ok(salesData);
+    }
+
+    @GetMapping("/reports/sales-by-category")
+    public ResponseEntity<List<Object[]>> getSalesByCategory(
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+
+        List<Object[]> salesData = reportService.getSalesByCategoryReport(startDate, endDate);
+        return ResponseEntity.ok(salesData);
+    }
+
+    @GetMapping("/reports/sales-by-customer")
+    public ResponseEntity<List<Object[]>> getSalesByCustomer(
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+
+        List<Object[]> salesData = reportService.getSalesByCustomerReport(startDate, endDate);
+        return ResponseEntity.ok(salesData);
+    }
+
+    @GetMapping("/reports/top-selling-products")
+    public ResponseEntity<List<Object[]>> getTopSellingProducts(
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam("topN") int topN) {
+        List<Object[]> salesData = reportService.getTopNBestSellingProductsReport(startDate, endDate, topN);
+        return ResponseEntity.ok(salesData);
+    }
+
+    @GetMapping("/reports/sales-dynamics-month")
+    public ResponseEntity<List<Object[]>> getSalesDynamicsByMonth(
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+
+        List<Object[]> salesData = reportService.getSalesDynamicsByMonthReport(startDate, endDate);
+        return ResponseEntity.ok(salesData);
+    }
+
+    @GetMapping("/reports/sales-dynamics-year")
+    public ResponseEntity<List<Object[]>> getSalesDynamicsByYear(
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+
+        List<Object[]> salesData = reportService.getSalesDynamicsByYearReport(startDate, endDate);
+        return ResponseEntity.ok(salesData);
+    }
+
+    @GetMapping("/reports/pending-payment-orders")
+    public ResponseEntity<List<Order>> getPendingPaymentOrders(
+            @RequestParam("days") int days) {
+
+        List<Order> orders = reportService.getPendingPaymentOrdersOlderThanReport(days);
+        return ResponseEntity.ok(orders);
+    }
+}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Отчеты</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+  <h1>Отчеты</h1>
+
+  <!-- Продажи по товарам -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Продажи по товарам</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/sales-by-product}" method="get">
+        <div class="row mb-3">
+          <div class="col-md-5">
+            <label for="startDate1" class="form-label">Начальная дата</label>
+            <input type="date" class="form-control" id="startDate1" name="startDate">
+          </div>
+          <div class="col-md-5">
+            <label for="endDate1" class="form-label">Конечная дата</label>
+            <input type="date" class="form-control" id="endDate1" name="endDate">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Продажи по категориям -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Продажи по категориям</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/sales-by-category}" method="get">
+        <div class="row mb-3">
+          <div class="col-md-5">
+            <label for="startDate2" class="form-label">Начальная дата</label>
+            <input type="date" class="form-control" id="startDate2" name="startDate">
+          </div>
+          <div class="col-md-5">
+            <label for="endDate2" class="form-label">Конечная дата</label>
+            <input type="date" class="form-control" id="endDate2" name="endDate">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Продажи по клиентам -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Продажи по клиентам</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/sales-by-customer}" method="get">
+        <div class="row mb-3">
+          <div class="col-md-5">
+            <label for="startDate3" class="form-label">Начальная дата</label>
+            <input type="date" class="form-control" id="startDate3" name="startDate">
+          </div>
+          <div class="col-md-5">
+            <label for="endDate3" class="form-label">Конечная дата</label>
+            <input type="date" class="form-control" id="endDate3" name="endDate">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Топ продаваемых товаров -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Топ продаваемых товаров</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/top-selling-products}" method="get">
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label for="startDate4" class="form-label">Начальная дата</label>
+            <input type="date" class="form-control" id="startDate4" name="startDate">
+          </div>
+          <div class="col-md-3">
+            <label for="endDate4" class="form-label">Конечная дата</label>
+            <input type="date" class="form-control" id="endDate4" name="endDate">
+          </div>
+          <div class="col-md-3">
+            <label for="topN" class="form-label">Количество товаров</label>
+            <input type="number" class="form-control" id="topN" name="topN" value="10" min="1">
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Динамика продаж по месяцам -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Динамика продаж по месяцам</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/sales-dynamics-month}" method="get">
+        <div class="row mb-3">
+          <div class="col-md-5">
+            <label for="startDate5" class="form-label">Начальная дата</label>
+            <input type="date" class="form-control" id="startDate5" name="startDate">
+          </div>
+          <div class="col-md-5">
+            <label for="endDate5" class="form-label">Конечная дата</label>
+            <input type="date" class="form-control" id="endDate5" name="endDate">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Динамика продаж по годам -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Динамика продаж по годам</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/sales-dynamics-year}" method="get">
+        <div class="row mb-3">
+          <div class="col-md-5">
+            <label for="startDate6" class="form-label">Начальная дата</label>
+            <input type="date" class="form-control" id="startDate6" name="startDate">
+          </div>
+          <div class="col-md-5">
+            <label for="endDate6" class="form-label">Конечная дата</label>
+            <input type="date" class="form-control" id="endDate6" name="endDate">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Заказы в статусе "Ожидание оплаты" -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Заказы в статусе "Ожидание оплаты"</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/pending-payment-orders}" method="get">
+        <div class="row mb-3">
+          <div class="col-md-8">
+            <label for="days" class="form-label">Заказы старше (дней)</label>
+            <input type="number" class="form-control" id="days" name="days" value="7" min="1">
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <a th:href="@{/}" class="btn btn-secondary mt-3">На главную</a>
+</div>
+</body>
+</html>

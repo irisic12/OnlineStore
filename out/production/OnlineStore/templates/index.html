@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+    <h1>Добро пожаловать в систему управления заказами</h1>
+
+    <div class="list-group mt-4">
+        <a th:href="@{/categories}" class="list-group-item list-group-item-action">Управление категориями</a>
+        <a th:href="@{/products}" class="list-group-item list-group-item-action">Управление продуктами</a>
+        <a th:href="@{/customers}" class="list-group-item list-group-item-action">Управление клиентами</a>
+        <a th:href="@{/orders}" class="list-group-item list-group-item-action">Управление заказами</a>
+        <a th:href="@{/reports}" class="list-group-item list-group-item-action">Отчеты</a>
+    </div>
+</div>
+</body>
+</html>

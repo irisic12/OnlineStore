@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${category.id} ? 'Редактирование категории' : 'Добавление категории'"></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+  <h1 th:text="${category.id} ? 'Редактирование категории' : 'Добавление категории'"></h1>
+
+  <form th:action="${category.id} ? @{/categories/update/{id}(id=${category.id}) : @{/categories/add}"
+        th:object="${category}" method="post">
+    <div class="mb-3">
+      <label for="name" class="form-label">Название</label>
+      <input type="text" class="form-control" id="name" th:field="*{name}" required>
+    </div>
+    <div class="mb-3">
+      <label for="description" class="form-label">Описание</label>
+      <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a th:href="@{/categories}" class="btn btn-secondary">Отмена</a>
+  </form>
+</div>
+</body>
+</html>
