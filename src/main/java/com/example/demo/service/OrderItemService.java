@@ -3,10 +3,12 @@ package com.example.demo.service;
 import com.example.demo.entities.OrderItem;
 import com.example.demo.helpClass.OrderItemId;
 import com.example.demo.repositories.OrderItemRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class OrderItemService {
     private final OrderItemRepository orderItemRepository;
 

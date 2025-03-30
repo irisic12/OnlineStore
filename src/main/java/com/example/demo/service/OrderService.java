@@ -3,11 +3,13 @@ package com.example.demo.service;
 import com.example.demo.entities.Customer;
 import com.example.demo.entities.Order;
 import com.example.demo.repositories.OrderRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class OrderService {
     private final OrderRepository orderRepository;
 

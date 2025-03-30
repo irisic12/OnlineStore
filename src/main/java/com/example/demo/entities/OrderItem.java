@@ -17,6 +17,16 @@ public class OrderItem {
     @EmbeddedId
     private OrderItemId id = new OrderItemId();
 
+    @ManyToOne
+    @MapsId("orderId") // ссылается на поле "orderId" в OrderItemId
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @ManyToOne
+    @MapsId("productId") // ссылается на поле "productId" в OrderItemId
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
     @Column(nullable = false)
     private Integer quantity;
 

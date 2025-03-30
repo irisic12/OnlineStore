@@ -52,8 +52,8 @@ public class OrderControllerView {
 
         OrderItem orderItem = new OrderItem();
         OrderItemId orderItemId = new OrderItemId();
-        orderItemId.setOrder(order);
-        orderItemId.setProduct(product);
+        orderItemId.setOrderId(order.getId());
+        orderItemId.setProductId(product.getId());
         orderItem.setId(orderItemId);
         orderItem.setQuantity(quantity);
 
@@ -69,8 +69,8 @@ public class OrderControllerView {
         Product product = productService.getProductById(productId).orElseThrow();
 
         OrderItemId id = new OrderItemId();
-        id.setOrder(order);
-        id.setProduct(product);
+        id.setOrderId(order.getId());
+        id.setProductId(product.getId());
 
         OrderItem orderItem = orderItemService.getOrderItemById(id).orElseThrow();
         orderItem.setQuantity(quantity);
@@ -86,8 +86,8 @@ public class OrderControllerView {
         Product product = productService.getProductById(productId).orElseThrow();
 
         OrderItemId id = new OrderItemId();
-        id.setOrder(order);
-        id.setProduct(product);
+        id.setOrderId(order.getId());
+        id.setProductId(product.getId());
 
         orderItemService.deleteOrderItem(id);
         return "redirect:/orders/" + orderId + "/items";

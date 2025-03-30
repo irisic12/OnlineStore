@@ -3,10 +3,12 @@ package com.example.demo.service;
 import com.example.demo.entities.Category;
 import com.example.demo.entities.Customer;
 import com.example.demo.repositories.CustomerRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class CustomerService {
     private final CustomerRepository customerRepository;
 

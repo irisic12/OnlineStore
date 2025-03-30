@@ -9,11 +9,15 @@
 <div class="container mt-4">
   <h1 th:text="${category.id} ? 'Редактирование категории' : 'Добавление категории'"></h1>
 
-  <form th:action="${category.id} ? @{/categories/update/{id}(id=${category.id}) : @{/categories/add}"
+  <!-- Отображение ошибок -->
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+  <form th:action="${category.id == null} ? '/categories/add' : '/categories/update/' + ${category.id}"
         th:object="${category}" method="post">
     <div class="mb-3">
       <label for="name" class="form-label">Название</label>
       <input type="text" class="form-control" id="name" th:field="*{name}" required>
+      <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></div>
     </div>
     <div class="mb-3">
       <label for="description" class="form-label">Описание</label>

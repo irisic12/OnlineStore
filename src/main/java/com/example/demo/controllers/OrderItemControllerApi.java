@@ -44,8 +44,8 @@ public class OrderItemControllerApi {
 
         OrderItem orderItem = new OrderItem();
         OrderItemId orderItemId = new OrderItemId();
-        orderItemId.setOrder(order.get());
-        orderItemId.setProduct(product.get());
+        orderItemId.setOrderId(order.get().getId());
+        orderItemId.setProductId(product.get().getId());
         orderItem.setId(orderItemId);
         try {
             orderItem.setQuantity(quantity);
@@ -70,8 +70,8 @@ public class OrderItemControllerApi {
         }
 
         OrderItemId orderItemId = new OrderItemId();
-        orderItemId.setOrder(order.get());
-        orderItemId.setProduct(product.get());
+        orderItemId.setOrderId(order.get().getId());
+        orderItemId.setProductId(product.get().getId());
 
         Optional<OrderItem> orderItem = orderItemService.getOrderItemById(orderItemId);
 
@@ -106,8 +106,8 @@ public class OrderItemControllerApi {
         Order orderEntity = order.get();
         Product productEntity = product.get();
 
-        id.setOrder(orderEntity);
-        id.setProduct(productEntity);
+        id.setOrderId(orderEntity.getId());
+        id.setProductId(productEntity.getId());
 
         orderItemService.deleteOrderItem(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
