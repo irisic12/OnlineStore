@@ -9,29 +9,47 @@
 <div class="container mt-4">
   <h1 th:text="${product.id} ? 'Редактирование продукта' : 'Добавление продукта'"></h1>
 
-  <form th:action="${product.id} ? @{/products/update/{id}(id=${product.id}) : @{/products/add}"
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+  <form th:action="${product.id == null} ? '/products/add' : '/products/update/' + ${product.id}"
         th:object="${product}" method="post">
+
+    <!-- Название продукта -->
     <div class="mb-3">
       <label for="name" class="form-label">Название</label>
       <input type="text" class="form-control" id="name" th:field="*{name}" required>
+      <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></div>
     </div>
+
+    <!-- Цена продукта -->
     <div class="mb-3">
       <label for="price" class="form-label">Цена</label>
-      <input type="number" step="0.01" class="form-control" id="price" th:field="*{price}" required>
+      <input type="number" step="0.01" class="form-control" id="price" th:field="*{price}" required min="0">
+      <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="text-danger"></div>
     </div>
+
+    <!-- Категория продукта -->
     <div class="mb-3">
       <label for="category" class="form-label">Категория</label>
-      <select class="form-select" id="category" th:field="*{category}">
+      <select class="form-select" id="category" th:field="*{category.id}" required>
+        <option value="">-- Выберите категорию --</option>
         <option th:each="category : ${categories}"
                 th:value="${category.id}"
                 th:text="${category.name}"
-                th:selected="${product.category?.id == category.id}"></option>
+                th:selected="${product.category?.id == category.id}">
+        </option>
       </select>
+      <div th:if="${#fields.hasErrors('category')}" th:errors="*{category}" class="text-danger"></div>
     </div>
+
+    <!-- Описание продукта -->
     <div class="mb-3">
       <label for="description" class="form-label">Описание</label>
       <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+      <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-danger"></div>
     </div>
+
+    <!-- Кнопки действий -->
     <button type="submit" class="btn btn-primary">Сохранить</button>
     <a th:href="@{/products}" class="btn btn-secondary">Отмена</a>
   </form>

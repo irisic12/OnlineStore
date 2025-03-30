@@ -9,7 +9,9 @@
 <div class="container mt-4">
   <h1 th:text="${customer.id} ? 'Редактирование клиента' : 'Добавление клиента'"></h1>
 
-  <form th:action="${customer.id} ? @{/customers/update/{id}(id=${customer.id}) : @{/customers/add}"
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+  <form th:action="${customer.id == null} ? '/customers/add' : '/customers/update/' + ${customer.id}"
         th:object="${customer}" method="post">
     <div class="mb-3">
       <label for="firstName" class="form-label">Имя</label>

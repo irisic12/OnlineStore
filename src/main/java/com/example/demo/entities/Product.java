@@ -24,11 +24,6 @@ public class Product {
     private BigDecimal price;
 
     private String description;
-    private String imageURL;
-    private BigDecimal stockQuantity;
-
-    @Column(nullable = false)
-    private String unitOfMeasurement;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -41,10 +36,4 @@ public class Product {
         this.price = price;
     }
 
-    public void setStockQuantity(BigDecimal stockQuantity) {
-        if (stockQuantity != null && stockQuantity.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Stock quantity must be non-negative.");
-        }
-        this.stockQuantity = stockQuantity;
-    }
 }

@@ -24,6 +24,8 @@ public class Customer {
 
     @Column(nullable = false)
     private String lastName;
+
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -31,14 +33,4 @@ public class Customer {
 
     @Column(nullable = false)
     private String address;
-
-    @Column(nullable = false)
-    private Date registrationDate;
-
-    public void setRegistrationDate(Date registrationDate) {
-        if (registrationDate != null && registrationDate.after(new Date())) {
-            throw new IllegalArgumentException("Registration date must be in the past or present.");
-        }
-        this.registrationDate = registrationDate;
-    }
 }

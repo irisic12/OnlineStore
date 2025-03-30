@@ -9,7 +9,6 @@
 <div class="container mt-4">
   <h1 th:text="${category.id} ? 'Редактирование категории' : 'Добавление категории'"></h1>
 
-  <!-- Отображение ошибок -->
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
   <form th:action="${category.id == null} ? '/categories/add' : '/categories/update/' + ${category.id}"

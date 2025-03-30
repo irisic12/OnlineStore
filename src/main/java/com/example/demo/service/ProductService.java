@@ -41,10 +41,10 @@ public class ProductService {
                 .map(product -> {
                     product.setName(updatedProduct.getName());
                     product.setPrice(updatedProduct.getPrice());
-                    product.setDescription(updatedProduct.getDescription());
+                    /*product.setDescription(updatedProduct.getDescription());
                     product.setImageURL(updatedProduct.getImageURL());
                     product.setStockQuantity(updatedProduct.getStockQuantity());
-                    product.setUnitOfMeasurement(updatedProduct.getUnitOfMeasurement());
+                    product.setUnitOfMeasurement(updatedProduct.getUnitOfMeasurement());*/
                     return productRepository.save(product);
                 })
                 .orElse(null);

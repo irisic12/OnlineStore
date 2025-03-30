@@ -23,14 +23,14 @@ public class ProductControllerView {
 
     @GetMapping
     public String getAllProducts(Model model) {
-        model.addAttribute("products", productService.getAllProducts());
+        model.addAttribute("products", productService.searchProductsByName(""));
         return "products";
     }
 
     @GetMapping("/add")
     public String showAddForm(Model model) {
         model.addAttribute("product", new Product());
-        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("categories", categoryService.searchCategoriesByName(""));
         return "product-form";
     }
 
@@ -43,7 +43,7 @@ public class ProductControllerView {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("product", productService.getProductById(id).orElse(null));
-        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("categories", categoryService.searchCategoriesByName(""));
         return "product-form";
     }
 

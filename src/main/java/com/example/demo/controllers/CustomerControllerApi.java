@@ -37,11 +37,10 @@ public class CustomerControllerApi {
         return new ResponseEntity<>(customers, HttpStatus.OK);
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<Customer> getCustomerByEmail(@PathVariable String email) {
-        Optional<Customer> customer = customerService.getCustomerByEmail(email);
-        return customer.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @GetMapping("/search")
+    public ResponseEntity<List<Customer>> getCustomerByEmail(@RequestParam("query") String email) {
+        List<Customer> customers = customerService.searchCustomersByEmail(email);
+        return new ResponseEntity<>(customers, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

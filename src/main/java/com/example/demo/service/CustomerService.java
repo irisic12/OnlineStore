@@ -28,7 +28,7 @@ public class CustomerService {
         return customerRepository.findByLastName(lastName);
     }
 
-    public Optional<Customer> getCustomerByEmail(String email) {
+    public List<Customer> searchCustomersByEmail(String email) {
         return customerRepository.findByEmail(email);
     }
 
@@ -40,7 +40,6 @@ public class CustomerService {
                     customer.setEmail(updatedCustomer.getEmail());
                     customer.setPhone(updatedCustomer.getPhone());
                     customer.setAddress(updatedCustomer.getAddress());
-                    customer.setRegistrationDate(updatedCustomer.getRegistrationDate());
                     return customerRepository.save(customer);
                 })
                 .orElse(null);

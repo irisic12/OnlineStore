@@ -19,7 +19,7 @@ public class CustomerControllerView {
 
     @GetMapping
     public String getAllCustomers(Model model) {
-        model.addAttribute("customers", customerService.getAllCustomers());
+        model.addAttribute("customers", customerService.searchCustomersByEmail(""));
         return "customers";
     }
 
