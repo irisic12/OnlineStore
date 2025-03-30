@@ -1,4 +1,4 @@
-package com.example.demo.controllers;
+package com.example.demo.controllers.api;
 
 import com.example.demo.entities.Product;
 import com.example.demo.service.ProductService;

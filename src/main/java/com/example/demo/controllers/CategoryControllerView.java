@@ -19,7 +19,7 @@ public class CategoryControllerView {
 
     @GetMapping
     public String getAllCategories(Model model) {
-        List<Category> categories = categoryService.searchCategoriesByName("");
+        List<Category> categories = categoryService.getAllCategories();
         model.addAttribute("categories", categories);
         return "categories";
     }

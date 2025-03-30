@@ -23,14 +23,14 @@ public class ProductControllerView {
 
     @GetMapping
     public String getAllProducts(Model model) {
-        model.addAttribute("products", productService.searchProductsByName(""));
+        model.addAttribute("products", productService.getAllProducts());
         return "products";
     }
 
     @GetMapping("/add")
     public String showAddForm(Model model) {
         model.addAttribute("product", new Product());
-        model.addAttribute("categories", categoryService.searchCategoriesByName(""));
+        model.addAttribute("categories", categoryService.getAllCategories());
         return "product-form";
     }
 
