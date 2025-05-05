@@ -43,7 +43,7 @@ public class ProductControllerView {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("product", productService.getProductById(id).orElse(null));
-        model.addAttribute("categories", categoryService.searchCategoriesByName(""));
+        model.addAttribute("categories", categoryService.getAllCategories());
         return "product-form";
     }
 

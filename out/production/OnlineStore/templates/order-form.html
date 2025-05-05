@@ -8,20 +8,21 @@
 <body>
 <div class="container mt-4">
   <h1 th:text="${order.id} ? 'Редактирование заказа' : 'Добавление заказа'"></h1>
-
-  <form th:action="${order.id} ? @{/orders/update/{id}(id=${order.id}) : @{/orders/add}"
+  <form th:action="${order.id == null} ? '/orders/add' : '/orders/update/' + ${order.id}"
         th:object="${order}" method="post">
     <div class="mb-3">
       <label for="orderDate" class="form-label">Дата заказа</label>
-      <input type="date" class="form-control" id="orderDate" th:field="*{orderDate}" required>
+      <input type="date" class="form-control" id="orderDate"
+             name="orderDate"
+             th:value="${order.orderDate != null ? #dates.format(order.orderDate, 'yyyy-MM-dd') : ''}">
     </div>
     <div class="mb-3">
       <label for="customer" class="form-label">Клиент</label>
-      <select class="form-select" id="customer" th:field="*{customer}">
+      <select class="form-select" id="customer" name="customerId" required>
+        <option value="">Выберите клиента</option>
         <option th:each="customer : ${customers}"
                 th:value="${customer.id}"
-                th:text="${customer.firstName + ' ' + customer.lastName}"
-                th:selected="${order.customer?.id == customer.id}"></option>
+                th:text="${customer.firstName + ' ' + customer.lastName}"></option>
       </select>
     </div>
     <div class="mb-3">
@@ -36,6 +37,14 @@
                 th:text="${status}"
                 th:selected="${order.status == status}"></option>
       </select>
+    </div>
+    <div class="mb-3">
+     <label for="paymentMethod" class="form-label">Способ оплаты</label>
+     <select class="form-select" id="paymentMethod" th:field="*{paymentMethod}" required>
+       <option th:each="method : ${T(com.example.demo.enums.PaymentMethod).values()}"
+              th:value="${method}"
+              th:text="${method}"></option>
+     </select>
     </div>
     <div class="mb-3">
       <label for="shippingAddress" class="form-label">Адрес доставки</label>

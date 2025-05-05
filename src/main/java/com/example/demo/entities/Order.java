@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -24,6 +25,8 @@ public class Order {
     private Long id;
 
     @Column(nullable = false)
+    @Temporal(TemporalType.DATE) // Указываем, что храним только дату (без времени)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date orderDate;
 
     @Column(nullable = false)
