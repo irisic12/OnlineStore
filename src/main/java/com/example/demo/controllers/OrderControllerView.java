@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -63,6 +64,7 @@ public class OrderControllerView {
             // Устанавливаем клиента
             Customer customer = customerService.getCustomerById(customerId).orElseThrow();
             order.setCustomer(customer);
+            order.setTotalAmount(BigDecimal.ZERO);
 
             // Устанавливаем текущую дату, если не указана
             if (order.getOrderDate() == null) {

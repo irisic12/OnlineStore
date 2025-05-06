@@ -5,6 +5,7 @@ import com.example.demo.entities.Order;
 import com.example.demo.repositories.OrderRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -12,17 +13,22 @@ import java.util.Optional;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final OrderItemService orderItemService;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, OrderItemService orderItemService) {
         this.orderRepository = orderRepository;
+        this.orderItemService = orderItemService;
     }
 
     public Order createOrder(Order order) {
+        order.setTotalAmount(BigDecimal.ZERO);
         return orderRepository.save(order);
     }
 
     public Optional<Order> getOrderById(Long id) {
-        return orderRepository.findById(id);
+        Optional<Order> orderOpt = orderRepository.findById(id);
+        orderOpt.ifPresent(Order::calculateTotal);
+        return orderOpt;
     }
 
     public List<Order> getOrdersByCustomerId(Long customerId) {

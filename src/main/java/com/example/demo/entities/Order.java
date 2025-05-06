@@ -30,7 +30,7 @@ public class Order {
     private Date orderDate;
 
     @Column(nullable = false)
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Column(nullable = false)
     private OrderStatus status;
@@ -55,10 +55,17 @@ public class Order {
         this.orderDate = orderDate;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
-        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Total amount must be greater than zero.");
+    // Метод для пересчета общей суммы
+    @PostLoad
+    @PostUpdate
+    public void calculateTotal() {
+        if (orderItems != null) {
+            this.totalAmount = orderItems.stream()
+                    .map(item -> item.getProduct().getPrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        } else {
+            this.totalAmount = BigDecimal.ZERO;
         }
-        this.totalAmount = totalAmount;
     }
 }
