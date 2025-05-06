@@ -8,8 +8,11 @@
 <body>
 <div class="container mt-4">
   <h1>Товары заказа #<span th:text="${order.id}"></span></h1>
-  <p>Дата: <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy')}"></span></p>
+  <p>Дата: <span th:text="${#dates.format(order.orderDate, 'dd.MM.yyyy')}"></span></p>
   <p>Клиент: <span th:text="${order.customer.firstName + ' ' + order.customer.lastName}"></span></p>
+
+  <!-- Отображение ошибок -->
+  <div th:if="${param.error}" class="alert alert-danger" th:text="${param.error}"></div>
 
   <h3>Добавить товар</h3>
   <form th:action="@{/orders/{orderId}/items/add(orderId=${order.id})}" method="post">
@@ -44,22 +47,22 @@
     </thead>
     <tbody>
     <tr th:each="item : ${orderItems}">
-      <td th:text="${item.id.product.name}"></td>
-      <td th:text="${item.id.product.price} + ' ₽'"></td>
+      <td th:text="${item.product.name}"></td>
+      <td th:text="${item.product.price} + ' ₽'"></td>
       <td>
         <form th:action="@{/orders/{orderId}/items/update(orderId=${order.id})}"
               method="post" class="d-flex">
-          <input type="hidden" name="productId" th:value="${item.id.product.id}">
+          <input type="hidden" name="productId" th:value="${item.product.id}">
           <input type="number" name="quantity" th:value="${item.quantity}" min="1"
                  class="form-control me-2" style="width: 80px;">
           <button type="submit" class="btn btn-sm btn-outline-secondary">Обновить</button>
         </form>
       </td>
-      <td th:text="${item.id.product.price * item.quantity} + ' ₽'"></td>
+      <td th:text="${item.product.price * item.quantity} + ' ₽'"></td>
       <td>
         <form th:action="@{/orders/{orderId}/items/delete(orderId=${order.id})}"
               method="post" class="d-inline">
-          <input type="hidden" name="productId" th:value="${item.id.product.id}">
+          <input type="hidden" name="productId" th:value="${item.product.id}">
           <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
         </form>
       </td>
