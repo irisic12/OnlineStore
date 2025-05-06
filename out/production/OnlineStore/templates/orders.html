@@ -25,7 +25,7 @@
     <tbody>
     <tr th:each="order : ${orders}">
       <td th:text="${order.id}"></td>
-      <td th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy')}"></td>
+      <td th:text="${order.orderDate != null ? #dates.format(order.orderDate, 'dd.MM.yyyy') : ''}"></td>
       <td th:text="${order.customer.firstName + ' ' + order.customer.lastName}"></td>
       <td th:text="${order.totalAmount}"></td>
       <td th:text="${order.status}"></td>

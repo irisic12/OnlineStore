@@ -25,7 +25,7 @@ public class Order {
     private Long id;
 
     @Column(nullable = false)
-    @Temporal(TemporalType.DATE) // Указываем, что храним только дату (без времени)
+    @Temporal(TemporalType.DATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date orderDate;
 

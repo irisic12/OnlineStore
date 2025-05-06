@@ -55,24 +55,72 @@ public class OrderControllerView {
 
     @PostMapping("/add")
     public String addOrder(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date orderDate,
             @ModelAttribute Order order,
+            @RequestParam Long customerId,
             Model model) {
 
-        // Устанавливаем дату вручную
-        order.setOrderDate(orderDate);
+        try {
+            // Устанавливаем клиента
+            Customer customer = customerService.getCustomerById(customerId).orElseThrow();
+            order.setCustomer(customer);
 
-        // Проверка обязательных полей
-        if (order.getCustomer() == null || order.getStatus() == null ||
-                order.getShippingAddress() == null || order.getShippingAddress().isEmpty()) {
-            model.addAttribute("error", "Заполните все обязательные поля");
+            // Устанавливаем текущую дату, если не указана
+            if (order.getOrderDate() == null) {
+                order.setOrderDate(new Date());
+            }
+
+            // Проверка обязательных полей
+            if (order.getStatus() == null ||
+                    order.getShippingAddress() == null || order.getShippingAddress().isEmpty()) {
+                throw new IllegalArgumentException("Заполните все обязательные поля");
+            }
+
+            orderService.createOrder(order);
+            return "redirect:/orders";
+
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("order", order);
             model.addAttribute("customers", customerService.getAllCustomers());
             model.addAttribute("statuses", OrderStatus.values());
             model.addAttribute("paymentMethods", PaymentMethod.values());
             return "order-form";
         }
+    }
 
-        orderService.createOrder(order);
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Order order = orderService.getOrderById(id).orElseThrow();
+        model.addAttribute("order", order);
+        model.addAttribute("customers", customerService.getAllCustomers());
+        model.addAttribute("statuses", OrderStatus.values());
+        model.addAttribute("paymentMethods", PaymentMethod.values());
+        return "order-form";
+    }
+
+    @PostMapping("/update/{id}")
+    public String updateOrder(@PathVariable Long id,
+                              @ModelAttribute Order order,
+                              @RequestParam Long customerId,
+                              Model model) {
+        try {
+            Customer customer = customerService.getCustomerById(customerId).orElseThrow();
+            order.setCustomer(customer);
+            orderService.updateOrder(id, order);
+            return "redirect:/orders";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("order", order);
+            model.addAttribute("customers", customerService.getAllCustomers());
+            model.addAttribute("statuses", OrderStatus.values());
+            model.addAttribute("paymentMethods", PaymentMethod.values());
+            return "order-form";
+        }
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
         return "redirect:/orders";
     }
 
