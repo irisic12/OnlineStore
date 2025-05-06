@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 @Controller
-@RequestMapping("/report")
+@RequestMapping("/reports")
 public class ReportControllerView {
     private final ReportService reportService;
 
@@ -23,12 +23,12 @@ public class ReportControllerView {
         this.reportService = reportService;
     }
 
-    @GetMapping("/reports")
-    public String reports() {
+    @GetMapping
+    public String reportsHome() {
         return "reports";
     }
 
-    @GetMapping("/reports/sales-by-product")
+    @GetMapping("/sales-by-product")
     public String getSalesByProduct(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -40,7 +40,7 @@ public class ReportControllerView {
         return "report-sales-by-product";
     }
 
-    @GetMapping("/reports/sales-by-category")
+    @GetMapping("/sales-by-category")
     public String getSalesByCategory(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -52,7 +52,7 @@ public class ReportControllerView {
         return "report-sales-by-category";
     }
 
-    @GetMapping("/reports/sales-by-customer")
+    @GetMapping("/sales-by-customer")
     public String getSalesByCustomer(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -64,7 +64,7 @@ public class ReportControllerView {
         return "report-sales-by-customer";
     }
 
-    @GetMapping("/reports/top-selling-products")
+    @GetMapping("/top-selling-products")
     public String getTopSellingProducts(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -78,7 +78,7 @@ public class ReportControllerView {
         return "report-top-selling-products";
     }
 
-    @GetMapping("/reports/sales-dynamics-month")
+    @GetMapping("/sales-dynamics-month")
     public String getSalesDynamicsByMonth(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -90,7 +90,7 @@ public class ReportControllerView {
         return "report-sales-dynamics-month";
     }
 
-    @GetMapping("/reports/sales-dynamics-year")
+    @GetMapping("/sales-dynamics-year")
     public String getSalesDynamicsByYear(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -102,7 +102,7 @@ public class ReportControllerView {
         return "report-sales-dynamics-year";
     }
 
-    @GetMapping("/reports/pending-payment-orders")
+    @GetMapping("/pending-payment-orders")
     public String getPendingPaymentOrders(
             @RequestParam int days,
             Model model) {

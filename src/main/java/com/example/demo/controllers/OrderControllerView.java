@@ -109,6 +109,7 @@ public class OrderControllerView {
             Customer customer = customerService.getCustomerById(customerId).orElseThrow();
             order.setCustomer(customer);
             orderService.updateOrder(id, order);
+            orderService.recalculateOrderTotal(id);
             return "redirect:/orders";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());

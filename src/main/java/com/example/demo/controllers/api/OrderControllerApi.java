@@ -40,6 +40,7 @@ public class OrderControllerApi {
     @PutMapping("/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {
         Order order = orderService.updateOrder(id, updatedOrder);
+        orderService.recalculateOrderTotal(id);
         if (order != null) {
             return new ResponseEntity<>(order, HttpStatus.OK);
         } else {

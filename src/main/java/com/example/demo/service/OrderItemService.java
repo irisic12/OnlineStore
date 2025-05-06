@@ -11,13 +11,18 @@ import java.util.Optional;
 @Service
 public class OrderItemService {
     private final OrderItemRepository orderItemRepository;
+    private final OrderService orderService;
 
-    public OrderItemService(OrderItemRepository orderItemRepository) {
+    public OrderItemService(OrderItemRepository orderItemRepository,
+                            OrderService orderService) {
         this.orderItemRepository = orderItemRepository;
+        this.orderService = orderService;
     }
 
     public OrderItem createOrderItem(OrderItem orderItem) {
-        return orderItemRepository.save(orderItem);
+        OrderItem saved = orderItemRepository.save(orderItem);
+        orderService.recalculateOrderTotal(orderItem.getOrder().getId());
+        return saved;
     }
 
     public Optional<OrderItem> getOrderItemById(OrderItemId id) {
@@ -33,6 +38,8 @@ public class OrderItemService {
     }
 
     public void deleteOrderItem(OrderItemId id) {
+        Long orderId = id.getOrderId();
         orderItemRepository.deleteById(id);
+        orderService.recalculateOrderTotal(orderId);
     }
 }

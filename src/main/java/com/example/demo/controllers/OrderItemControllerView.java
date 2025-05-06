@@ -65,6 +65,7 @@ public class OrderItemControllerView {
             orderItem.setQuantity(quantity);
 
             orderItemService.createOrderItem(orderItem);
+            orderService.recalculateOrderTotal(orderId);
             return "redirect:/orders/" + orderId + "/items";
         } catch (Exception e) {
             model.addAttribute("error", "Ошибка при добавлении товара: " + e.getMessage());
@@ -90,6 +91,7 @@ public class OrderItemControllerView {
                 OrderItem orderItem = orderItemOpt.get();
                 orderItem.setQuantity(quantity);
                 orderItemService.createOrderItem(orderItem);
+                orderService.recalculateOrderTotal(orderId);
             } else {
                 model.addAttribute("error", "Товар в заказе не найден");
             }
@@ -114,6 +116,7 @@ public class OrderItemControllerView {
             id.setProductId(product.getId());
 
             orderItemService.deleteOrderItem(id);
+            orderService.recalculateOrderTotal(orderId);
             return "redirect:/orders/" + orderId + "/items";
         } catch (Exception e) {
             model.addAttribute("error", "Ошибка при удалении товара: " + e.getMessage());

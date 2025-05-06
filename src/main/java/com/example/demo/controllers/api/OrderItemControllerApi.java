@@ -55,6 +55,7 @@ public class OrderItemControllerApi {
 
 
         OrderItem createdOrderItem = orderItemService.createOrderItem(orderItem);
+        orderService.recalculateOrderTotal(orderId);
         return new ResponseEntity<>(createdOrderItem, HttpStatus.CREATED);
     }
 
@@ -110,6 +111,7 @@ public class OrderItemControllerApi {
         id.setProductId(productEntity.getId());
 
         orderItemService.deleteOrderItem(id);
+        orderService.recalculateOrderTotal(orderId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

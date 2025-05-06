@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entities.Customer;
 import com.example.demo.entities.Order;
 import com.example.demo.repositories.OrderRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -46,7 +47,9 @@ public class OrderService {
                     order.setTotalAmount(updatedOrder.getTotalAmount());
                     order.setStatus(updatedOrder.getStatus());
                     order.setShippingAddress(updatedOrder.getShippingAddress());
-                    return orderRepository.save(order);
+                    Order savedOrder = orderRepository.save(order);
+                    recalculateOrderTotal(id);
+                    return savedOrder;
                 })
                 .orElse(null);
     }
@@ -57,5 +60,13 @@ public class OrderService {
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
+    }
+
+    @Transactional
+    public void recalculateOrderTotal(Long orderId) {
+        Order order = orderRepository.findByIdWithItems(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        order.calculateTotal();
+        orderRepository.save(order);
     }
 }

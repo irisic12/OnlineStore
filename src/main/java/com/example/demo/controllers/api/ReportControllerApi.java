@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/report")
+@RequestMapping("/api/reports")
 public class ReportControllerApi {
     private final ReportService reportService;
 
@@ -24,7 +24,7 @@ public class ReportControllerApi {
         this.reportService = reportService;
     }
 
-    @GetMapping("/reports/sales-by-product")
+    @GetMapping("/sales-by-product")
     public ResponseEntity<List<Object[]>> getSalesByProduct(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
@@ -33,7 +33,7 @@ public class ReportControllerApi {
         return ResponseEntity.ok(salesData);
     }
 
-    @GetMapping("/reports/sales-by-category")
+    @GetMapping("/sales-by-category")
     public ResponseEntity<List<Object[]>> getSalesByCategory(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
@@ -42,7 +42,7 @@ public class ReportControllerApi {
         return ResponseEntity.ok(salesData);
     }
 
-    @GetMapping("/reports/sales-by-customer")
+    @GetMapping("/sales-by-customer")
     public ResponseEntity<List<Object[]>> getSalesByCustomer(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
@@ -51,7 +51,7 @@ public class ReportControllerApi {
         return ResponseEntity.ok(salesData);
     }
 
-    @GetMapping("/reports/top-selling-products")
+    @GetMapping("/top-selling-products")
     public ResponseEntity<List<Object[]>> getTopSellingProducts(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -60,7 +60,7 @@ public class ReportControllerApi {
         return ResponseEntity.ok(salesData);
     }
 
-    @GetMapping("/reports/sales-dynamics-month")
+    @GetMapping("/sales-dynamics-month")
     public ResponseEntity<List<Object[]>> getSalesDynamicsByMonth(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
@@ -69,7 +69,7 @@ public class ReportControllerApi {
         return ResponseEntity.ok(salesData);
     }
 
-    @GetMapping("/reports/sales-dynamics-year")
+    @GetMapping("/sales-dynamics-year")
     public ResponseEntity<List<Object[]>> getSalesDynamicsByYear(
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
@@ -78,7 +78,7 @@ public class ReportControllerApi {
         return ResponseEntity.ok(salesData);
     }
 
-    @GetMapping("/reports/pending-payment-orders")
+    @GetMapping("/pending-payment-orders")
     public ResponseEntity<List<Order>> getPendingPaymentOrders(
             @RequestParam("days") int days) {
 

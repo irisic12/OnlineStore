@@ -27,7 +27,7 @@ public interface CustomOrderRepository extends JpaRepository<Order, Long>, Repor
     @Override
     @Query("SELECT oi.product.category.name, SUM(oi.quantity * oi.product.price) FROM OrderItem oi " +
             "JOIN oi.order o " +
-            "WHERE (:startDate IS NULL OR :endDate IS NULL OR o.orderDate BETWEEN :startDate AND :endDate) " +
+            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
             "GROUP BY oi.product.category.name")
     List<Object[]> findSalesByCategoryForPeriod(
             @Param("startDate") Date startDate,
@@ -37,7 +37,7 @@ public interface CustomOrderRepository extends JpaRepository<Order, Long>, Repor
     @Override
     @Query("SELECT o.customer.firstName, o.customer.lastName, SUM(o.totalAmount) " +
             "FROM Order o " +
-            "WHERE (:startDate IS NULL OR :endDate IS NULL OR o.orderDate BETWEEN :startDate AND :endDate) " +
+            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
             "GROUP BY o.customer.firstName, o.customer.lastName")
     List<Object[]> findSalesByCustomerForPeriod(
             @Param("startDate") Date startDate,
