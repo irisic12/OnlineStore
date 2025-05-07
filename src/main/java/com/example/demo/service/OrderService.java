@@ -2,8 +2,14 @@ package com.example.demo.service;
 
 import com.example.demo.entities.Customer;
 import com.example.demo.entities.Order;
+import com.example.demo.entities.OrderItem;
+import com.example.demo.entities.Product;
+import com.example.demo.helpClass.OrderItemId;
+import com.example.demo.repositories.OrderItemRepository;
 import com.example.demo.repositories.OrderRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,11 +20,13 @@ import java.util.Optional;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final OrderItemService orderItemService;
+    private final OrderItemRepository orderItemRepository;
 
-    public OrderService(OrderRepository orderRepository, OrderItemService orderItemService) {
+    public OrderService(OrderRepository orderRepository,
+                        @Lazy OrderItemService orderItemService,
+                        OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
-        this.orderItemService = orderItemService;
+        this.orderItemRepository = orderItemRepository;
     }
 
     public Order createOrder(Order order) {
@@ -40,18 +48,50 @@ public class OrderService {
         return orderRepository.findByOrderDateBetween(startDate, endDate);
     }
 
+    @Transactional
     public Order updateOrder(Long id, Order updatedOrder) {
-        return orderRepository.findById(id)
-                .map(order -> {
-                    order.setOrderDate(updatedOrder.getOrderDate());
-                    order.setTotalAmount(updatedOrder.getTotalAmount());
-                    order.setStatus(updatedOrder.getStatus());
-                    order.setShippingAddress(updatedOrder.getShippingAddress());
-                    Order savedOrder = orderRepository.save(order);
-                    recalculateOrderTotal(id);
-                    return savedOrder;
+        return orderRepository.findByIdWithItems(id) // Используем метод с загрузкой items
+                .map(existingOrder -> {
+                    // Сохраняем текущую сумму перед изменениями
+                    BigDecimal previousTotal = existingOrder.getTotalAmount();
+
+                    // Обновляем базовые поля
+                    if (updatedOrder.getOrderDate() != null) {
+                        existingOrder.setOrderDate(updatedOrder.getOrderDate());
+                    }
+
+                    if (updatedOrder.getStatus() != null) {
+                        existingOrder.setStatus(updatedOrder.getStatus());
+                    }
+
+                    if (updatedOrder.getShippingAddress() != null && !updatedOrder.getShippingAddress().isEmpty()) {
+                        existingOrder.setShippingAddress(updatedOrder.getShippingAddress());
+                    }
+
+                    if (updatedOrder.getPaymentMethod() != null) {
+                        existingOrder.setPaymentMethod(updatedOrder.getPaymentMethod());
+                    }
+
+                    // Обновляем клиента без сброса totalAmount
+                    if (updatedOrder.getCustomer() != null && updatedOrder.getCustomer().getId() != null
+                            && (existingOrder.getCustomer() == null
+                            || !updatedOrder.getCustomer().getId().equals(existingOrder.getCustomer().getId()))) {
+                        // Создаем новый объект Customer только с ID
+                        Customer customer = new Customer();
+                        customer.setId(updatedOrder.getCustomer().getId());
+                        existingOrder.setCustomer(customer);
+                    }
+
+                    // Восстанавливаем original totalAmount если он не был явно задан
+                    if (updatedOrder.getTotalAmount() == null) {
+                        existingOrder.setTotalAmount(previousTotal);
+                    } else {
+                        existingOrder.setTotalAmount(updatedOrder.getTotalAmount());
+                    }
+
+                    return orderRepository.save(existingOrder);
                 })
-                .orElse(null);
+                .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + id));
     }
 
     public void deleteOrder(Long id) {
@@ -65,8 +105,48 @@ public class OrderService {
     @Transactional
     public void recalculateOrderTotal(Long orderId) {
         Order order = orderRepository.findByIdWithItems(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        BigDecimal total = order.getOrderItems().stream()
+                .map(item -> item.getProduct().getPrice()
+                        .multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.setTotalAmount(total);
+        orderRepository.saveAndFlush(order); // Принудительное сохранение
+    }
+
+    @Transactional
+    public void addItemToOrder(Long orderId, OrderItem item) {
+        Order order = orderRepository.findByIdWithItems(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        order.getOrderItems().add(item);
+        item.setOrder(order);
+
+        // Явно вызываем пересчёт
         order.calculateTotal();
-        orderRepository.save(order);
+        orderRepository.saveAndFlush(order);
+    }
+
+    @Transactional
+    public Optional<Order> findByIdWithItems(Long id) {
+        return orderRepository.findByIdWithItems(id);
+    }
+
+    @Transactional
+    public void removeItemFromOrder(Long orderId, OrderItemId itemId) {
+        Order order = orderRepository.findByIdWithItems(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        // Находим и удаляем item
+        order.getOrderItems().removeIf(item -> item.getId().equals(itemId));
+
+        // Пересчитываем сумму
+        order.calculateTotal();
+        orderRepository.saveAndFlush(order);
+
+        // Явно удаляем из БД
+        orderItemRepository.deleteById(itemId);
     }
 }

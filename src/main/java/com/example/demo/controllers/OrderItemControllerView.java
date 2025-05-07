@@ -41,36 +41,21 @@ public class OrderItemControllerView {
     }
 
     @PostMapping("/add")
-    public String addItemToOrder(@PathVariable Long orderId,
-                                 @RequestParam Long productId,
-                                 @RequestParam Integer quantity,
-                                 Model model) {
-        try {
-            Order order = orderService.getOrderById(orderId).orElseThrow();
-            Product product = productService.getProductById(productId).orElseThrow();
+    public String addItem(@PathVariable Long orderId,
+                          @RequestParam Long productId,
+                          @RequestParam Integer quantity) {
 
-            // Создаем OrderItem с правильными связями
-            OrderItem orderItem = new OrderItem();
+        Product product = productService.getProductById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-            // Устанавливаем связи через объекты
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
+        OrderItem item = new OrderItem();
+        item.setProduct(product);
+        item.setQuantity(quantity);
+        item.setId(new OrderItemId(orderId, productId));
 
-            // Создаем и устанавливаем ID
-            OrderItemId orderItemId = new OrderItemId();
-            orderItemId.setOrderId(order.getId());
-            orderItemId.setProductId(product.getId());
-            orderItem.setId(orderItemId);
+        orderService.addItemToOrder(orderId, item);
 
-            orderItem.setQuantity(quantity);
-
-            orderItemService.createOrderItem(orderItem);
-            orderService.recalculateOrderTotal(orderId);
-            return "redirect:/orders/" + orderId + "/items";
-        } catch (Exception e) {
-            model.addAttribute("error", "Ошибка при добавлении товара: " + e.getMessage());
-            return "redirect:/orders/" + orderId + "/items?error=" + e.getMessage();
-        }
+        return "redirect:/orders/" + orderId + "/items";
     }
 
     @PostMapping("/update")
@@ -104,23 +89,10 @@ public class OrderItemControllerView {
     }
 
     @PostMapping("/delete")
-    public String deleteOrderItem(@PathVariable Long orderId,
-                                  @RequestParam Long productId,
-                                  Model model) {
-        try {
-            Order order = orderService.getOrderById(orderId).orElseThrow();
-            Product product = productService.getProductById(productId).orElseThrow();
-
-            OrderItemId id = new OrderItemId();
-            id.setOrderId(order.getId());
-            id.setProductId(product.getId());
-
-            orderItemService.deleteOrderItem(id);
-            orderService.recalculateOrderTotal(orderId);
-            return "redirect:/orders/" + orderId + "/items";
-        } catch (Exception e) {
-            model.addAttribute("error", "Ошибка при удалении товара: " + e.getMessage());
-            return "redirect:/orders/" + orderId + "/items?error=" + e.getMessage();
-        }
+    public String deleteItem(@PathVariable Long orderId,
+                             @RequestParam Long productId) {
+        OrderItemId itemId = new OrderItemId(orderId, productId);
+        orderService.removeItemFromOrder(orderId, itemId);
+        return "redirect:/orders/" + orderId + "/items";
     }
 }

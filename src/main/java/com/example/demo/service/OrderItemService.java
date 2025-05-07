@@ -1,9 +1,14 @@
 package com.example.demo.service;
 
+import com.example.demo.entities.Order;
 import com.example.demo.entities.OrderItem;
 import com.example.demo.helpClass.OrderItemId;
 import com.example.demo.repositories.OrderItemRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,17 +17,48 @@ import java.util.Optional;
 public class OrderItemService {
     private final OrderItemRepository orderItemRepository;
     private final OrderService orderService;
+    private final PlatformTransactionManager transactionManager;
 
     public OrderItemService(OrderItemRepository orderItemRepository,
-                            OrderService orderService) {
+                            @Lazy OrderService orderService,
+                            PlatformTransactionManager transactionManager) {
         this.orderItemRepository = orderItemRepository;
         this.orderService = orderService;
+        this.transactionManager = transactionManager;
     }
 
+    @Transactional
     public OrderItem createOrderItem(OrderItem orderItem) {
-        OrderItem saved = orderItemRepository.save(orderItem);
-        orderService.recalculateOrderTotal(orderItem.getOrder().getId());
-        return saved;
+        // 1. Сохраняем OrderItem
+        OrderItem savedItem = orderItemRepository.save(orderItem);
+
+        // 2. Если есть привязка к Order
+        if (savedItem.getOrder() != null) {
+            // 3. Создаем TransactionTemplate
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+            // 4. Выполняем в новой транзакции после коммита основной
+            transactionTemplate.executeWithoutResult(status -> {
+                // Получаем актуальные данные заказа
+                Order existingOrder = orderService.findByIdWithItems(savedItem.getOrder().getId())
+                        .orElseThrow(() -> new IllegalStateException("Order not found"));
+
+                // Создаем объект для обновления
+                Order updateRequest = new Order();
+                updateRequest.setId(existingOrder.getId());
+                updateRequest.setOrderDate(existingOrder.getOrderDate());
+                updateRequest.setStatus(existingOrder.getStatus());
+                updateRequest.setShippingAddress(existingOrder.getShippingAddress());
+                updateRequest.setPaymentMethod(existingOrder.getPaymentMethod());
+                updateRequest.setCustomer(existingOrder.getCustomer());
+                updateRequest.setTotalAmount(null); // Для пересчета
+
+                // Вызываем updateOrder
+                orderService.updateOrder(existingOrder.getId(), updateRequest);
+            });
+        }
+
+        return savedItem;
     }
 
     public Optional<OrderItem> getOrderItemById(OrderItemId id) {
@@ -38,8 +74,7 @@ public class OrderItemService {
     }
 
     public void deleteOrderItem(OrderItemId id) {
-        Long orderId = id.getOrderId();
         orderItemRepository.deleteById(id);
-        orderService.recalculateOrderTotal(orderId);
+        orderService.recalculateOrderTotal(id.getOrderId());
     }
 }

@@ -12,4 +12,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, OrderItemI
 
     // Найти все OrderItem для определенного продукта
     List<OrderItem> findById_ProductId(Long productId);
+
+    void deleteById(OrderItemId id);
 }

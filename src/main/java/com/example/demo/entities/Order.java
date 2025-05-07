@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +30,6 @@ public class Order {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date orderDate;
 
-    @Column(nullable = false)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Column(nullable = false)
@@ -45,8 +45,9 @@ public class Order {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @OneToMany(mappedBy = "order")
-    private List<OrderItem> orderItems;
+    @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            orphanRemoval = false, fetch = FetchType.EAGER)
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     public void setOrderDate(Date orderDate) {
         if (orderDate != null && orderDate.after(new Date())) {
@@ -58,6 +59,7 @@ public class Order {
     // Метод для пересчета общей суммы
     @PostLoad
     @PostUpdate
+    @PostPersist
     public void calculateTotal() {
         if (orderItems != null) {
             this.totalAmount = orderItems.stream()

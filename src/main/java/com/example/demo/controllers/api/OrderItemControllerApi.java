@@ -10,6 +10,7 @@ import com.example.demo.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,28 +36,27 @@ public class OrderItemControllerApi {
             @PathVariable Long productId,
             @RequestBody Integer quantity) {
 
-        Optional<Order> order = orderService.getOrderById(orderId);
-        Optional<Product> product = productService.getProductById(productId);
+        Order order = orderService.findByIdWithItems(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        if (!order.isPresent() || !product.isPresent()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        Product product = productService.getProductById(productId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         OrderItem orderItem = new OrderItem();
         OrderItemId orderItemId = new OrderItemId();
-        orderItemId.setOrderId(order.get().getId());
-        orderItemId.setProductId(product.get().getId());
+        orderItemId.setOrderId(order.getId());
+        orderItemId.setProductId(product.getId());
         orderItem.setId(orderItemId);
-        try {
-            orderItem.setQuantity(quantity);
-        } catch(IllegalArgumentException e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        orderItem.setQuantity(quantity);
+        orderItem.setOrder(order);
+        orderItem.setProduct(product);
 
+        OrderItem savedItem = orderItemService.createOrderItem(orderItem);
 
-        OrderItem createdOrderItem = orderItemService.createOrderItem(orderItem);
+        // Явное обновление заказа
         orderService.recalculateOrderTotal(orderId);
-        return new ResponseEntity<>(createdOrderItem, HttpStatus.CREATED);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
     }
 
     @GetMapping("/{orderId}/{productId}")
