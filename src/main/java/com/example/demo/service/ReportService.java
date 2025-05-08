@@ -37,7 +37,7 @@ public class ReportService {
     }
 
     public List<Object[]> getTopNBestSellingProductsReport(Date startDate, Date endDate, int topN) {
-        return orderRepository.findTopNBestSellingProductsForPeriod(startDate, endDate, 10); // Example: Top 10
+        return orderRepository.findTopNBestSellingProductsForPeriod(startDate, endDate, topN);
     }
 
     public List<Object[]> getSalesDynamicsByMonthReport(Date startDate, Date endDate) {

@@ -8,7 +8,7 @@
 <body>
 <div class="container mt-4">
   <h1>Динамика продаж по годам</h1>
-  <p class="text-muted" th:text="'Период: ' + ${#temporals.format(startDate, 'dd.MM.yyyy')} + ' - ' + ${#temporals.format(endDate, 'dd.MM.yyyy')}"></p>
+  <p class="text-muted" th:text="'Период: ' + ${#dates.format(startDate, 'dd.MM.yyyy')} + ' - ' + ${#dates.format(endDate, 'dd.MM.yyyy')}"></p>
 
   <table class="table table-striped">
     <thead>

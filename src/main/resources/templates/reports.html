@@ -145,6 +145,30 @@
     </div>
   </div>
 
+  <!-- Динамика продаж по годам -->
+  <div class="card report-card">
+    <div class="card-header bg-secondary text-white">
+      <h5>Динамика продаж по годам</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/reports/sales-dynamics-year}" method="get" class="report-form">
+        <div class="row mb-3">
+          <div class="col-md-5">
+            <label for="startDate6" class="form-label">Начальная дата</label>
+            <input type="date" class="form-control" id="startDate6" name="startDate" required>
+          </div>
+          <div class="col-md-5">
+            <label for="endDate6" class="form-label">Конечная дата</label>
+            <input type="date" class="form-control" id="endDate6" name="endDate" required>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-secondary w-100">Сформировать</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Заказы в статусе "Ожидание оплаты" -->
   <div class="card report-card">
     <div class="card-header bg-danger text-white">

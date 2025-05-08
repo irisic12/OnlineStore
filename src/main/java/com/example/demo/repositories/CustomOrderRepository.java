@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import org.springframework.stereotype.Repository;
 
+import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -45,35 +46,37 @@ public interface CustomOrderRepository extends JpaRepository<Order, Long>, Repor
     );
 
     @Override
-    @Query("SELECT oi.product.name, SUM(oi.quantity) AS totalQuantity " +
-            "FROM OrderItem oi " +
-            "JOIN oi.order o " +
-            "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY oi.product.name " +
-            "ORDER BY totalQuantity DESC")
+    @Query(value = "SELECT p.name, SUM(oi.quantity) AS total_quantity " +
+            "FROM order_item oi " +
+            "JOIN product p ON oi.product_id = p.id " +
+            "JOIN orders o ON oi.order_id = o.id " +
+            "WHERE o.order_date BETWEEN :startDate AND :endDate " +
+            "GROUP BY p.name " +
+            "ORDER BY total_quantity DESC " +
+            "LIMIT :topN", nativeQuery = true)
     List<Object[]> findTopNBestSellingProductsForPeriod(
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
-            int topN
+            @Param("topN") int topN
     );
 
     @Override
-    @Query("SELECT FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate), SUM(o.totalAmount) " +
+    @Query("SELECT EXTRACT(YEAR FROM o.orderDate), EXTRACT(MONTH FROM o.orderDate), SUM(o.totalAmount) " +
             "FROM Order o " +
             "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate) " +
-            "ORDER BY FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate)")
+            "GROUP BY EXTRACT(YEAR FROM o.orderDate), EXTRACT(MONTH FROM o.orderDate) " +
+            "ORDER BY EXTRACT(YEAR FROM o.orderDate), EXTRACT(MONTH FROM o.orderDate)")
     List<Object[]> getSalesDynamicsByMonth(
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate
     );
 
     @Override
-    @Query("SELECT FUNCTION('YEAR', o.orderDate), SUM(o.totalAmount) " +
+    @Query("SELECT EXTRACT(YEAR FROM o.orderDate), SUM(o.totalAmount) " +
             "FROM Order o " +
             "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY FUNCTION('YEAR', o.orderDate) " +
-            "ORDER BY FUNCTION('YEAR', o.orderDate)")
+            "GROUP BY EXTRACT(YEAR FROM o.orderDate) " +
+            "ORDER BY EXTRACT(YEAR FROM o.orderDate)")
     List<Object[]> getSalesDynamicsByYear(
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate

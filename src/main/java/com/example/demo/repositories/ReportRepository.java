@@ -22,9 +22,9 @@ public interface ReportRepository {
     // Отчет 5: Динамика продаж по месяцам
     List<Object[]> getSalesDynamicsByMonth(Date startDate, Date endDate);
 
-    // Отчет 5: Динамика продаж по годам
+    // Отчет 6: Динамика продаж по годам
     List<Object[]> getSalesDynamicsByYear(Date startDate, Date endDate);
 
-    // Отчет 6: Заказы в статусе "Ожидание оплаты" более X дней
+    // Отчет 7: Заказы в статусе "Ожидание оплаты" более X дней
     List<Order> findPendingPaymentOrdersOlderThan(Date dateThreshold);
 }
