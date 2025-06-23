@@ -14,7 +14,6 @@
   <table class="table table-striped">
     <thead>
     <tr>
-      <th>ID</th>
       <th>Название</th>
       <th>Описание</th>
       <th>Действия</th>
@@ -22,7 +21,6 @@
     </thead>
     <tbody>
     <tr th:each="category : ${categories}">
-      <td th:text="${category.id}"></td>
       <td th:text="${category.name}"></td>
       <td th:text="${category.description}"></td>
       <td>
