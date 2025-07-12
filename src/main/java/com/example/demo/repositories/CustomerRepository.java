@@ -11,6 +11,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     // Найти клиентов по фамилии
     List<Customer> findByLastName(String lastName);
 
-    // Найти клиентов по email
-    List<Customer> findByEmail(String email);
+    // Найти клиента по email
+    Optional<Customer> findByEmail(String email);
 }

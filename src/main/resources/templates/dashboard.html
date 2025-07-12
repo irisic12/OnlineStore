@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+<head>
+  <meta charset="UTF-8">
+  <title>OnlineStore — Главная</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap @5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .welcome-section {
+      text-align: center;
+      margin-top: 5rem;
+    }
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #e9ecef;
+      padding: 10px 0;
+      text-align: center;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Основное содержимое -->
+<div class="container welcome-section">
+  <h1 class="display-4 mb-4">Добро пожаловать, <span sec:authentication="principal.username"></span>!</h1>
+  <p class="lead">Выберите нужный раздел:</p>
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="list-group list-group-flush shadow-sm rounded">
+
+        <!-- Доступно всем авторизованным -->
+        <a sec:authorize="isAuthenticated()" th:href="@{/products}">Продукты</a>
+
+        <a sec:authorize="isAuthenticated()" th:href="@{/orders}">Заказы</a>
+
+        <!-- Только для ADMIN -->
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/categories}">Категории</a>
+
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/customers}">Клиенты</a>
+
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/reports}">Отчеты</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Подвал -->
+<footer class="footer">
+  <div class="container">
+    <p>© 2025 OnlineStore — Система управления интернет-магазином</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap @5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

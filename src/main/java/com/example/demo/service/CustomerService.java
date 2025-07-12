@@ -28,7 +28,7 @@ public class CustomerService {
         return customerRepository.findByLastName(lastName);
     }
 
-    public List<Customer> searchCustomersByEmail(String email) {
+    public Optional<Customer> searchCustomersByEmail(String email) {
         return customerRepository.findByEmail(email);
     }
 
