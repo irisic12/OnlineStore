@@ -36,10 +36,11 @@ public interface CustomOrderRepository extends JpaRepository<Order, Long>, Repor
     );
 
     @Override
-    @Query("SELECT o.customer.firstName, o.customer.lastName, SUM(o.totalAmount) " +
+    @Query("SELECT o.customer.firstName, o.customer.lastName, SUM(o.totalAmount) AS total_amount " +
             "FROM Order o " +
             "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
-            "GROUP BY o.customer.firstName, o.customer.lastName")
+            "GROUP BY o.customer.firstName, o.customer.lastName " +
+            "ORDER BY total_amount DESC ")
     List<Object[]> findSalesByCustomerForPeriod(
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate

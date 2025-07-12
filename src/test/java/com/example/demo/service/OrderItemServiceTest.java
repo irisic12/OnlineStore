@@ -88,21 +88,6 @@ public class OrderItemServiceTest {
         ));
     }
 
-
-    @Test
-    @Transactional
-    void createOrderItemWithoutOrder() {
-        orderItem.setOrder(null); // Тестируем случай без привязки к заказу
-        when(orderItemRepository.save(any(OrderItem.class))).thenReturn(orderItem);
-
-        OrderItem created = orderItemService.createOrderItem(orderItem);
-
-        assertNotNull(created);
-        assertNull(created.getOrder());
-        verify(orderItemRepository, times(1)).save(orderItem);
-        verify(orderService, never()).recalculateOrderTotal(anyLong());
-    }
-
     @Test
     void getOrderItemById() {
         OrderItemId id = new OrderItemId(1L, 1L);

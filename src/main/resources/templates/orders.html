@@ -26,7 +26,7 @@
       <td th:text="${order.orderDate != null ? #dates.format(order.orderDate, 'dd.MM.yyyy') : ''}"></td>
       <td th:text="${order.customer.firstName + ' ' + order.customer.lastName}"></td>
       <td th:text="${order.totalAmount}"></td>
-      <td th:text="${order.status}"></td>
+      <td th:text="${T(com.example.demo.helpClass.DisplayNames).getDisplayName(order.status)}"></td>
       <td>
         <a th:href="@{/orders/edit/{id}(id=${order.id})}" class="btn btn-sm btn-warning">Редактировать</a>
         <a th:href="@{/orders/delete/{id}(id=${order.id})}" class="btn btn-sm btn-danger">Удалить</a>

@@ -32,18 +32,18 @@
     <div class="mb-3">
       <label for="status" class="form-label">Статус</label>
       <select class="form-select" id="status" name="status" required>
-        <option th:each="status : ${statuses}"
+        <option th:each="status : ${T(com.example.demo.enums.OrderStatus).values()}"
                 th:value="${status}"
-                th:text="${status}"
+                th:text="${T(com.example.demo.helpClass.DisplayNames).getDisplayName(status)}"
                 th:selected="${order.status == status}"></option>
       </select>
     </div>
     <div class="mb-3">
       <label for="paymentMethod" class="form-label">Способ оплаты</label>
       <select class="form-select" id="paymentMethod" name="paymentMethod" required>
-        <option th:each="method : ${paymentMethods}"
+        <option th:each="method : ${T(com.example.demo.enums.PaymentMethod).values()}"
                 th:value="${method}"
-                th:text="${method}"
+                th:text="${T(com.example.demo.helpClass.DisplayNames).getDisplayName(method)}"
                 th:selected="${order.paymentMethod == method}"></option>
       </select>
     </div>

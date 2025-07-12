@@ -232,7 +232,7 @@ public class ProductControllerApiTest {
         // Заглушка для productService.getProductRepository().findAll()
         ProductRepository productRepository = mock(ProductRepository.class);
         when(productRepository.findAll()).thenReturn(productList);
-        when(productService.getProductRepository()).thenReturn(productRepository); // ✅ ВАЖНО!
+        when(productService.getProductRepository()).thenReturn(productRepository);
 
         // Выполняем запрос
         mockMvc.perform(get("/api/products"))

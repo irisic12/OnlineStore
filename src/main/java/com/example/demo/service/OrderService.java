@@ -113,7 +113,7 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         order.setTotalAmount(total);
-        orderRepository.saveAndFlush(order); // Принудительное сохранение
+        orderRepository.saveAndFlush(order);
     }
 
     @Transactional

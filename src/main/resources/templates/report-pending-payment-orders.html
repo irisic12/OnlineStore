@@ -13,7 +13,6 @@
   <table class="table table-striped">
     <thead>
     <tr>
-      <th>ID</th>
       <th>Дата заказа</th>
       <th>Клиент</th>
       <th>Сумма</th>
@@ -22,11 +21,10 @@
     </thead>
     <tbody>
     <tr th:each="order : ${orders}">
-      <td th:text="${order.id}"></td>
       <td th:text="${#dates.format(order.orderDate, 'dd.MM.yyyy')}"></td>
       <td th:text="${order.customer.firstName + ' ' + order.customer.lastName}"></td>
       <td th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)} + ' ₽'"></td>
-      <td th:text="${order.status}"></td>
+      <td th:text="${T(com.example.demo.helpClass.DisplayNames).getDisplayName(order.status)}"></td>
     </tr>
     </tbody>
   </table>
