@@ -1,62 +1,46 @@
 package com.example.demo.controllers.api;
 
+import com.example.demo.dto.CustomerResponseDTO;
 import com.example.demo.entities.Customer;
 import com.example.demo.service.CustomerService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/customers")
+@RequiredArgsConstructor
 public class CustomerControllerApi {
+
     private final CustomerService customerService;
 
-    public CustomerControllerApi(CustomerService customerService) {
-        this.customerService = customerService;
+    @GetMapping("/me")
+    public ResponseEntity<CustomerResponseDTO> getCurrentCustomer() {
+        return ResponseEntity.ok(customerService.getCurrentCustomerDTO());
     }
 
-    @PostMapping
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-        Customer createdCustomer = customerService.createCustomer(customer);
-        return new ResponseEntity<>(createdCustomer, HttpStatus.CREATED);
+    @GetMapping
+    public ResponseEntity<List<CustomerResponseDTO>> getAllCustomers() {
+        return ResponseEntity.ok(customerService.getAllCustomersDTO());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
-        Optional<Customer> customer = customerService.getCustomerById(id);
-        return customer.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable Long id) {
+        return customerService.getCustomerById(id)
+                .map(customer -> ResponseEntity.ok(customerService.toResponseDTO(customer)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/lastName/{lastName}")
-    public ResponseEntity<List<Customer>> getCustomersByLastName(@PathVariable String lastName) {
-        List<Customer> customers = customerService.getCustomersByLastName(lastName);
-        return new ResponseEntity<>(customers, HttpStatus.OK);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<Customer> searchCustomerByEmail(@RequestParam("query") String email) {
-        return customerService.searchCustomersByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
-        Customer customer = customerService.updateCustomer(id, updatedCustomer);
-        if (customer != null) {
-            return new ResponseEntity<>(customer, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
-        customerService.deleteCustomer(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @GetMapping("/username/{username}")
+    public ResponseEntity<CustomerResponseDTO> getCustomerByUsername(@PathVariable String username) {
+        return customerService.getCustomerByUsername(username)
+                .map(customer -> ResponseEntity.ok(customerService.toResponseDTO(customer)))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.entities.Category;
 import com.example.demo.service.CategoryService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/categories")
+@PreAuthorize("hasRole('ADMIN')")
 public class CategoryControllerView {
     private final CategoryService categoryService;
 

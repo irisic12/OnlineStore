@@ -3,18 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <title>OnlineStore</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap @5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
+<!-- Основной контент -->
 <div class="container mt-5">
-    <h1 class="text-center">Добро пожаловать в OnlineStore</h1>
-    <p class="text-center">Система управления интернет-магазином</p>
-    <p class="text-center">Войдите, чтобы получить доступ ко всем функциям</p>
-    <div class="d-flex justify-content-center">
-        <a th:href="@{/login}" class="btn btn-primary me-2">Войти</a>
-        <a th:href="@{/register}" class="btn btn-primary me-2">Зарегистрироваться</a>
+
+    <!-- Для админа -->
+    <div th:if="${isAuthenticated and isAdmin}">
+        <h1 class="text-center mb-4">Добро пожаловать в систему управления заказами</h1>
+
+        <div class="row mt-4">
+            <!-- Управление категориями -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📁 Управление категориями</h5>
+                        <p class="card-text">Создание, редактирование и удаление категорий товаров</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/categories}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Управление продуктами -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📦 Управление продуктов</h5>
+                        <p class="card-text">Добавление, редактирование и удаление товаров</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/products}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Управление клиентами -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">👥 Управление клиентами</h5>
+                        <p class="card-text">Просмотр и управление данными клиентов</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/customers}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <!-- Управление заказами -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📋 Управление заказами</h5>
+                        <p class="card-text">Обработка и отслеживание заказов клиентов</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/orders}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Отчеты -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Отчеты</h5>
+                        <p class="card-text">Аналитика продаж и генерация отчетов</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/reports}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка выхода -->
+        <div class="text-center mt-5">
+            <a th:href="@{/logout}" class="btn btn-outline-secondary">Выйти</a>
+        </div>
+    </div>
+
+    <!-- Для обычного пользователя -->
+    <div th:if="${isAuthenticated and not isAdmin}">
+        <h1 class="text-center mb-4">Добро пожаловать в OnlineStore</h1>
+        <p class="text-center text-muted mb-5">Рады видеть вас снова!</p>
+
+        <div class="row mt-4">
+            <!-- Мой профиль -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">👤 Мой профиль</h5>
+                        <p class="card-text">Просмотр и редактирование личных данных</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/user/profile}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Мои заказы -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📦 Мои заказы</h5>
+                        <p class="card-text">История и статусы заказов</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/user/orders}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Каталог товаров -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🛍️ Каталог товаров</h5>
+                        <p class="card-text">Просмотр и покупка товаров</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:href="@{/products}" class="btn btn-primary w-100">Перейти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка выхода -->
+        <div class="text-center mt-5">
+            <a th:href="@{/logout}" class="btn btn-outline-secondary">Выйти</a>
+        </div>
+    </div>
+
+    <!-- Для неавторизованных -->
+    <div th:unless="${isAuthenticated}">
+        <h1 class="text-center">Добро пожаловать в OnlineStore</h1>
+        <p class="text-center text-muted">Система управления интернет-магазином</p>
+        <p class="text-center mb-5">Войдите, чтобы получить доступ ко всем функциям</p>
+
+        <div class="d-flex justify-content-center">
+            <a th:href="@{/login}" class="btn btn-primary me-3 btn-lg">Войти</a>
+            <a th:href="@{/register}" class="btn btn-outline-primary btn-lg">Зарегистрироваться</a>
+        </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap @5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

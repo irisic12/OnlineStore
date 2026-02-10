@@ -4,6 +4,7 @@ import com.example.demo.entities.Category;
 import com.example.demo.entities.Product;
 import com.example.demo.service.CategoryService;
 import com.example.demo.service.ProductService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/products")
+@PreAuthorize("hasRole('ADMIN')")
 public class ProductControllerView {
     private final ProductService productService;
     private final CategoryService categoryService;

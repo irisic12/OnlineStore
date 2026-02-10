@@ -12,6 +12,7 @@ import com.example.demo.service.OrderItemService;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.ProductService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/orders")
+@PreAuthorize("hasRole('ADMIN')")
 public class OrderControllerView {
     private final OrderService orderService;
     private final OrderItemService orderItemService;

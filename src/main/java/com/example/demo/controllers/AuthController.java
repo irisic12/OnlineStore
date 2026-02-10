@@ -1,48 +1,60 @@
 package com.example.demo.controllers;
 
-import com.example.demo.entities.Customer;
-import com.example.demo.entities.Role;
-import com.example.demo.repositories.RoleRepository;
-import com.example.demo.service.CustomerService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.demo.dto.RegisterRequestDTO;
+import com.example.demo.service.RegistrationService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@RequiredArgsConstructor
 public class AuthController {
 
-    private final CustomerService customerService;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final RegistrationService registrationService;
 
-    public AuthController(CustomerService customerService,
-                          RoleRepository roleRepository,
-                          PasswordEncoder passwordEncoder) {
-        this.customerService = customerService;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
+    @GetMapping("/login")
+    public String login(Model model) {
+        return "login";
     }
 
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
-        model.addAttribute("customer", new Customer());
+        model.addAttribute("registerRequest", new RegisterRequestDTO());
         return "register";
     }
 
     @PostMapping("/register")
-    public String registerCustomer(@ModelAttribute Customer customer) {
-        Role userRole = roleRepository.findByName("USER");
-        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
-        customer.setRole(userRole);
-        customerService.createCustomer(customer);
-        return "redirect:/login";
-    }
+    public String registerCustomer(
+            @Valid @ModelAttribute("registerRequest") RegisterRequestDTO request,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
 
-    @GetMapping("/login")
-    public String login() {
-        return "login";
+        if (bindingResult.hasErrors()) {
+            return "register";
+        }
+
+        try {
+            registrationService.registerCustomer(request);
+            redirectAttributes.addFlashAttribute("success",
+                    "Регистрация прошла успешно! Теперь вы можете войти в систему.");
+            return "redirect:/login";
+
+        } catch (IllegalArgumentException e) {
+            String message = e.getMessage();
+            if (message.contains("логин")) {
+                bindingResult.rejectValue("username", "error.registerRequest", message);
+            } else if (message.contains("email")) {
+                bindingResult.rejectValue("email", "error.registerRequest", message);
+            } else {
+                bindingResult.reject("error.registerRequest", message);
+            }
+            return "register";
+        }
     }
 }

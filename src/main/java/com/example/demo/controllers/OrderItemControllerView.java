@@ -7,6 +7,7 @@ import com.example.demo.helpClass.OrderItemId;
 import com.example.demo.service.OrderItemService;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.ProductService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/orders/{orderId}/items")
+@PreAuthorize("hasRole('ADMIN')")
 public class OrderItemControllerView {
     private final OrderItemService orderItemService;
     private final OrderService orderService;

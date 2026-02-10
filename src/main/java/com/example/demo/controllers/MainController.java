@@ -1,20 +1,30 @@
 package com.example.demo.controllers;
 
+import com.example.demo.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
+@RequiredArgsConstructor
 public class MainController {
 
-    // Главная страница (до входа)
-    @GetMapping("/")
-    public String index() {
-        return "index";
-    }
+    private final UserService userService;
 
-    // Страница после входа
-    @GetMapping("/home")
-    public String dashboard() {
-        return "dashboard";
+    @GetMapping("/")
+    public String index(Model model) {
+        boolean isAuthenticated = userService.getCurrentUser().isPresent();
+        model.addAttribute("isAuthenticated", isAuthenticated);
+
+        if (isAuthenticated) {
+            userService.getCurrentUser().ifPresent(user -> {
+                model.addAttribute("username", user.getUsername());
+                model.addAttribute("fullName", user.getFullName());
+                model.addAttribute("isAdmin", userService.isCurrentUserAdmin());
+            });
+        }
+
+        return "index";
     }
 }
