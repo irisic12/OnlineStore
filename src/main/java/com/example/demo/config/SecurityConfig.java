@@ -59,7 +59,7 @@ public class SecurityConfig {
                 )
                 .logout((logout) -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
+                        .logoutSuccessUrl("/login?logout=true") // Перенаправление на страницу входа
                         .permitAll()
                 )
                 .exceptionHandling((exceptions) -> exceptions

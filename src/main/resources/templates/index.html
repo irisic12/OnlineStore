@@ -31,7 +31,7 @@
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">📦 Управление продуктов</h5>
+                        <h5 class="card-title">📦 Управление продуктами</h5>
                         <p class="card-text">Добавление, редактирование и удаление товаров</p>
                     </div>
                     <div class="card-footer bg-transparent">
@@ -82,9 +82,11 @@
             </div>
         </div>
 
-        <!-- Кнопка выхода -->
+        <!-- ИСПРАВЛЕННАЯ кнопка выхода -->
         <div class="text-center mt-5">
-            <a th:href="@{/logout}" class="btn btn-outline-secondary">Выйти</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-outline-secondary">Выйти</button>
+            </form>
         </div>
     </div>
 
@@ -134,9 +136,11 @@
             </div>
         </div>
 
-        <!-- Кнопка выхода -->
+        <!-- ИСПРАВЛЕННАЯ кнопка выхода -->
         <div class="text-center mt-5">
-            <a th:href="@{/logout}" class="btn btn-outline-secondary">Выйти</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-outline-secondary">Выйти</button>
+            </form>
         </div>
     </div>
 
