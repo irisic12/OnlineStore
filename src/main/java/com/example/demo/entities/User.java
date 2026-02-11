@@ -68,7 +68,7 @@ public class User implements UserDetails {
     private Set<Role> roles = new HashSet<>();
 
     // Связи (ленивые)
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Customer customer;
 
     // UserDetails методы

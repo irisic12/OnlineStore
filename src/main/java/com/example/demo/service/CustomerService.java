@@ -115,14 +115,13 @@ public class CustomerService {
                 .username(username)
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .roles(Set.of(Role.ROLE_USER))
                 .build();
 
-        User savedUser = userRepository.save(user);
+        user.addRole(Role.ROLE_USER);
 
         // 3. Создаем Customer с привязкой к User
         Customer newCustomer = Customer.builder()
-                .user(savedUser)
+                .user(user)
                 .firstName(customer.getFirstName())
                 .lastName(customer.getLastName())
                 .phone(customer.getPhone())
@@ -130,6 +129,10 @@ public class CustomerService {
                 .registrationDate(LocalDate.now())
                 .build();
 
+        // 4. Устанавливаем двунаправленную связь
+        user.setCustomer(newCustomer);
+
+        // 5. Сохраняем Customer - User сохранится автоматически благодаря cascade
         return customerRepository.save(newCustomer);
     }
 }

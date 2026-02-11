@@ -23,7 +23,6 @@ public class RegistrationService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CustomerMapper customerMapper;
 
     @Transactional
     public User registerCustomer(RegisterRequestDTO request) {
@@ -37,20 +36,18 @@ public class RegistrationService {
             throw new IllegalArgumentException("Пользователь с таким email уже существует");
         }
 
-        // 1. Создаем User (аутентификация)
+        // 1. Создаем User (без сохранения)
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .roles(new HashSet<>())
                 .build();
 
         user.addRole(Role.ROLE_USER);
-        User savedUser = userRepository.save(user);
 
-        // 2. Создаем Customer (бизнес-данные)
+        // 2. Создаем Customer с привязкой к User
         Customer customer = Customer.builder()
-                .user(savedUser)
+                .user(user)  // Устанавливаем связь
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .phone(request.getPhone())
@@ -58,16 +55,20 @@ public class RegistrationService {
                 .registrationDate(LocalDate.now())
                 .build();
 
+        // 3. Устанавливаем двунаправленную связь
+        user.setCustomer(customer);
+
+        // 4. Сохраняем Customer - User сохранится автоматически благодаря cascade
         customerRepository.save(customer);
 
-        return savedUser;
+        return user;
     }
 
     @Transactional
     public User registerAdmin(RegisterRequestDTO request) {
         User user = registerCustomer(request);
         user.addRole(Role.ROLE_ADMIN);
-        userRepository.save(user);
+        userRepository.save(user); // Обновляем роли
         return user;
     }
 }
