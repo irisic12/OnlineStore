@@ -26,9 +26,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     List<Customer> findByLastNameContainingIgnoreCase(String lastName);
 
-    @Query("SELECT c FROM Customer c WHERE c.totalSpent > :minAmount ORDER BY c.totalSpent DESC")
-    List<Customer> findTopCustomersByTotalSpent(@Param("minAmount") BigDecimal minAmount);
-
     @Query("SELECT c FROM Customer c LEFT JOIN FETCH c.orders WHERE c.id = :id")
     Optional<Customer> findByIdWithOrders(@Param("id") Long id);
 }

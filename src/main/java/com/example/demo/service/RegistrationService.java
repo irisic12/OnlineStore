@@ -43,7 +43,6 @@ public class RegistrationService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .roles(new HashSet<>())
-                .enabled(true)
                 .build();
 
         user.addRole(Role.ROLE_USER);

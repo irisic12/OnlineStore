@@ -73,8 +73,6 @@ public class CustomerService {
                     customer.setLastName(updatedCustomer.getLastName());
                     customer.setPhone(updatedCustomer.getPhone());
                     customer.setAddress(updatedCustomer.getAddress());
-                    customer.setLoyaltyCard(updatedCustomer.getLoyaltyCard());
-                    customer.setBirthDate(updatedCustomer.getBirthDate());
                     return customerRepository.save(customer);
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Клиент не найден"));
@@ -83,14 +81,6 @@ public class CustomerService {
     @Transactional
     public void deleteCustomer(Long id) {
         customerRepository.deleteById(id);
-    }
-
-    @Transactional
-    public void addToCustomerTotalSpent(Long customerId, BigDecimal amount) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new EntityNotFoundException("Клиент не найден"));
-        customer.addToTotalSpent(amount);
-        customerRepository.save(customer);
     }
 
     public List<Customer> searchCustomers(String query) {
@@ -126,7 +116,6 @@ public class CustomerService {
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .roles(Set.of(Role.ROLE_USER))
-                .enabled(true)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -139,7 +128,6 @@ public class CustomerService {
                 .phone(customer.getPhone())
                 .address(customer.getAddress())
                 .registrationDate(LocalDate.now())
-                .totalSpent(BigDecimal.ZERO)
                 .build();
 
         return customerRepository.save(newCustomer);

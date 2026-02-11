@@ -36,10 +36,7 @@ public class CustomerMapper {
                 .lastName(customer.getLastName())
                 .phone(customer.getPhone())
                 .address(customer.getAddress())
-                .loyaltyCard(customer.getLoyaltyCard())
-                .totalSpent(customer.getTotalSpent())
                 .registrationDate(customer.getRegistrationDate())
-                .birthDate(customer.getBirthDate())
                 .orderCount(customer.getOrders() != null ?
                         customer.getOrders().size() : 0)
                 .build();

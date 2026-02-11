@@ -46,19 +46,8 @@ public class Customer {
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;  // ← ПРОСТОЕ ПОЛЕ String!
 
-    // Бизнес-поля
-    @Column(name = "loyalty_card", length = 50)
-    private String loyaltyCard;
-
-    @Column(name = "total_spent", precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal totalSpent = BigDecimal.ZERO;
-
     @Column(name = "registration_date")
     private LocalDate registrationDate;
-
-    @Column(name = "birth_date")
-    private LocalDate birthDate;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -78,10 +67,4 @@ public class Customer {
         order.setCustomer(null);
     }
 
-    public void addToTotalSpent(BigDecimal amount) {
-        if (totalSpent == null) {
-            totalSpent = BigDecimal.ZERO;
-        }
-        totalSpent = totalSpent.add(amount);
-    }
 }

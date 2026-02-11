@@ -20,9 +20,6 @@ public class CustomerResponseDTO {
     private String lastName;
     private String phone;
     private String address;  // ← ПРОСТОЕ ПОЛЕ!
-    private String loyaltyCard;
-    private BigDecimal totalSpent;
     private LocalDate registrationDate;
-    private LocalDate birthDate;
     private int orderCount;
 }
