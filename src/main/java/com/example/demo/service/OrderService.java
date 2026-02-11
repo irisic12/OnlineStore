@@ -121,6 +121,14 @@ public class OrderService {
         Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
 
+        // Проверяем, есть ли уже такой товар в заказе
+        boolean productExists = order.getOrderItems().stream()
+                .anyMatch(existingItem -> existingItem.getProduct().getId().equals(item.getProduct().getId()));
+
+        if (productExists) {
+            throw new IllegalArgumentException("Товар \"" + item.getProduct().getName() + "\" уже есть в заказе");
+        }
+
         order.getOrderItems().add(item);
         item.setOrder(order);
 

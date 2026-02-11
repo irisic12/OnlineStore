@@ -11,9 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/orders/{orderId}/items")
@@ -33,29 +33,48 @@ public class OrderItemControllerView {
 
     @GetMapping
     public String showOrderItems(@PathVariable Long orderId, Model model) {
-        Order order = orderService.getOrderById(orderId).orElseThrow();
-        List<OrderItem> orderItems = orderItemService.getOrderItemsByOrderId(orderId);
+        try {
+            Order order = orderService.getOrderById(orderId)
+                    .orElseThrow(() -> new IllegalArgumentException("Заказ не найден"));
+            List<OrderItem> orderItems = orderItemService.getOrderItemsByOrderId(orderId);
 
-        model.addAttribute("order", order);
-        model.addAttribute("orderItems", orderItems);
-        model.addAttribute("allProducts", productService.getAllProducts());
+            model.addAttribute("order", order);
+            model.addAttribute("orderItems", orderItems);
+            model.addAttribute("allProducts", productService.getAllProducts());
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
         return "order-items";
     }
 
     @PostMapping("/add")
     public String addItem(@PathVariable Long orderId,
                           @RequestParam Long productId,
-                          @RequestParam Integer quantity) {
+                          @RequestParam Integer quantity,
+                          RedirectAttributes redirectAttributes) {
 
-        Product product = productService.getProductById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        try {
+            // Получаем товар
+            Product product = productService.getProductById(productId)
+                    .orElseThrow(() -> new IllegalArgumentException("Товар не найден"));
 
-        OrderItem item = new OrderItem();
-        item.setProduct(product);
-        item.setQuantity(quantity);
-        item.setId(new OrderItemId(orderId, productId));
+            // Создаем элемент заказа
+            OrderItem item = new OrderItem();
+            item.setProduct(product);
+            item.setQuantity(quantity);
+            item.setId(new OrderItemId(orderId, productId));
 
-        orderService.addItemToOrder(orderId, item);
+            // Добавляем в заказ (проверка на дубликат внутри сервиса)
+            orderService.addItemToOrder(orderId, item);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Товар успешно добавлен");
+
+        } catch (IllegalArgumentException e) {
+            // Это наше исключение о дубликате
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
+        }
 
         return "redirect:/orders/" + orderId + "/items";
     }
@@ -64,37 +83,42 @@ public class OrderItemControllerView {
     public String updateOrderItem(@PathVariable Long orderId,
                                   @RequestParam Long productId,
                                   @RequestParam Integer quantity,
-                                  Model model) {
+                                  RedirectAttributes redirectAttributes) {
         try {
-            Order order = orderService.getOrderById(orderId).orElseThrow();
-            Product product = productService.getProductById(productId).orElseThrow();
+            OrderItemId id = new OrderItemId(orderId, productId);
 
-            OrderItemId id = new OrderItemId();
-            id.setOrderId(order.getId());
-            id.setProductId(product.getId());
+            // Получаем существующий элемент
+            OrderItem orderItem = orderItemService.getOrderItemById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Товар не найден в заказе"));
 
-            Optional<OrderItem> orderItemOpt = orderItemService.getOrderItemById(id);
-            if (orderItemOpt.isPresent()) {
-                OrderItem orderItem = orderItemOpt.get();
-                orderItem.setQuantity(quantity);
-                orderItemService.createOrderItem(orderItem);
-                orderService.recalculateOrderTotal(orderId);
-            } else {
-                model.addAttribute("error", "Товар в заказе не найден");
-            }
+            // Обновляем количество
+            orderItem.setQuantity(quantity);
+            orderItemService.createOrderItem(orderItem);
 
-            return "redirect:/orders/" + orderId + "/items";
+            // Пересчитываем сумму заказа
+            orderService.recalculateOrderTotal(orderId);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Количество обновлено");
+
         } catch (Exception e) {
-            model.addAttribute("error", "Ошибка при обновлении товара: " + e.getMessage());
-            return "redirect:/orders/" + orderId + "/items?error=" + e.getMessage();
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }
+
+        return "redirect:/orders/" + orderId + "/items";
     }
 
     @PostMapping("/delete")
     public String deleteItem(@PathVariable Long orderId,
-                             @RequestParam Long productId) {
-        OrderItemId itemId = new OrderItemId(orderId, productId);
-        orderService.removeItemFromOrder(orderId, itemId);
+                             @RequestParam Long productId,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            OrderItemId itemId = new OrderItemId(orderId, productId);
+            orderService.removeItemFromOrder(orderId, itemId);
+            redirectAttributes.addFlashAttribute("successMessage", "Товар удален");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
+        }
+
         return "redirect:/orders/" + orderId + "/items";
     }
 }
