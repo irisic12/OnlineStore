@@ -43,9 +43,8 @@ public class OrderControllerApi {
         orderService.recalculateOrderTotal(id);
         if (order != null) {
             return new ResponseEntity<>(order, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}")

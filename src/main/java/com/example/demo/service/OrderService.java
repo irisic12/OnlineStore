@@ -94,8 +94,16 @@ public class OrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + id));
     }
 
+    @Transactional
     public void deleteOrder(Long id) {
-        orderRepository.deleteById(id);
+        Order order = orderRepository.findByIdWithItems(id)
+                .orElseThrow(() -> new EntityNotFoundException("Заказ не найден"));
+
+        // Удаляем все OrderItem связанные с заказом
+        order.getOrderItems().clear(); // Это удалит все позиции благодаря orphanRemoval=true
+
+        // Удаляем сам заказ
+        orderRepository.delete(order);
     }
 
     public List<Order> getAllOrders() {

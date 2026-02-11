@@ -41,7 +41,11 @@
            class="btn btn-sm btn-warning me-1">Редактировать</a>
         <a th:href="@{/customers/delete/{id}(id=${customer.id})}"
            class="btn btn-sm btn-danger"
-           onclick="return confirm('Вы уверены?')">Удалить</a>
+           th:onclick="${customer.orders != null && !customer.orders.isEmpty()} ?
+                               'alert(\'Невозможно удалить клиента - у него есть заказы.\'); return false;' :
+                               'return confirm(\'Вы уверены?\');'">
+          Удалить
+        </a>
       </td>
     </tr>
     </tbody>

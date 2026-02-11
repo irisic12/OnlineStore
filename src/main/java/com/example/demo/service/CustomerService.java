@@ -143,6 +143,18 @@ public class CustomerService {
 
     @Transactional
     public void deleteCustomer(Long id) {
+
+        Customer customer = customerRepository.findByIdWithOrders(id)
+                .orElseThrow(() -> new EntityNotFoundException("Клиент не найден"));
+
+        // Проверяем, есть ли у клиента заказы
+        if (customer.getOrders() != null && !customer.getOrders().isEmpty()) {
+            throw new IllegalStateException(
+                    "Невозможно удалить клиента '" + customer.getFullName() +
+                            "', так как у него есть заказы. Сначала удалите все заказы клиента."
+            );
+        }
+
         customerRepository.deleteById(id);
     }
 
