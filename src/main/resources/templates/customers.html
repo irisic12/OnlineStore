@@ -9,15 +9,18 @@
 <div class="container mt-4">
   <h1>Управление клиентами</h1>
 
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
   <a th:href="@{/customers/add}" class="btn btn-primary mb-3">Добавить клиента</a>
 
   <table class="table table-striped">
     <thead>
     <tr>
       <th>ID</th>
+      <th>Логин</th>
       <th>Имя</th>
       <th>Фамилия</th>
-      <th>Логин</th>
       <th>Email</th>
       <th>Телефон</th>
       <th>Адрес</th>
@@ -27,21 +30,18 @@
     <tbody>
     <tr th:each="customer : ${customers}">
       <td th:text="${customer.id}"></td>
+      <td th:text="${customer.user != null ? customer.user.username : '-'}"></td>
       <td th:text="${customer.firstName}"></td>
       <td th:text="${customer.lastName}"></td>
-      <td th:text="${customer.user != null ? customer.user.username : '-'}"></td>
       <td th:text="${customer.user != null ? customer.user.email : '-'}"></td>
       <td th:text="${customer.phone}"></td>
       <td th:text="${customer.address}"></td>
       <td>
-        <div class="btn-group" role="group">
-          <!-- Только кнопки Редактировать и Удалить -->
-          <a th:href="@{/customers/edit/{id}(id=${customer.id})}"
-             class="btn btn-sm btn-warning me-1">Редактировать</a>
-          <a th:href="@{/customers/delete/{id}(id=${customer.id})}"
-             class="btn btn-sm btn-danger"
-             onclick="return confirm('Вы уверены, что хотите удалить этого клиента?')">Удалить</a>
-        </div>
+        <a th:href="@{/customers/edit/{id}(id=${customer.id})}"
+           class="btn btn-sm btn-warning me-1">Редактировать</a>
+        <a th:href="@{/customers/delete/{id}(id=${customer.id})}"
+           class="btn btn-sm btn-danger"
+           onclick="return confirm('Вы уверены?')">Удалить</a>
       </td>
     </tr>
     </tbody>
@@ -49,7 +49,6 @@
 
   <a th:href="@{/}" class="btn btn-secondary">На главную</a>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

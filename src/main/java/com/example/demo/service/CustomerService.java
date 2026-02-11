@@ -66,17 +66,80 @@ public class CustomerService {
     }
 
     @Transactional
-    public Customer updateCustomer(Long id, Customer updatedCustomer) {
-        return customerRepository.findById(id)
-                .map(customer -> {
-                    customer.setFirstName(updatedCustomer.getFirstName());
-                    customer.setLastName(updatedCustomer.getLastName());
-                    customer.setPhone(updatedCustomer.getPhone());
-                    customer.setAddress(updatedCustomer.getAddress());
-                    return customerRepository.save(customer);
-                })
+    public Customer updateCustomer(Long id, Customer updatedCustomer, String email, boolean isAdmin) {
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Клиент не найден"));
+
+        // Обновляем поля Customer
+        customer.setFirstName(updatedCustomer.getFirstName());
+        customer.setLastName(updatedCustomer.getLastName());
+        customer.setPhone(updatedCustomer.getPhone());
+        customer.setAddress(updatedCustomer.getAddress());
+
+        // Обновляем email в связанном User
+        if (customer.getUser() != null && email != null && !email.isEmpty()) {
+            User user = customer.getUser();
+
+            // Проверяем уникальность email, если он меняется
+            if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("Пользователь с таким email уже существует");
+            }
+
+            user.setEmail(email);
+            userRepository.save(user);
+        }
+
+        return customerRepository.save(customer);
     }
+
+    // Для админа - полное обновление
+    @Transactional
+    public Customer adminUpdateCustomer(Long id, Customer updatedCustomer, String email, String username, String password) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Клиент не найден"));
+
+        // Обновляем поля Customer
+        customer.setFirstName(updatedCustomer.getFirstName());
+        customer.setLastName(updatedCustomer.getLastName());
+        customer.setPhone(updatedCustomer.getPhone());
+        customer.setAddress(updatedCustomer.getAddress());
+
+        // Обновляем User
+        if (customer.getUser() != null) {
+            User user = customer.getUser();
+
+            // Проверяем уникальность email
+            if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("Пользователь с таким email уже существует");
+            }
+
+            // Проверяем уникальность username
+            if (!user.getUsername().equals(username) && userRepository.existsByUsername(username)) {
+                throw new IllegalArgumentException("Пользователь с таким логином уже существует");
+            }
+
+            user.setEmail(email);
+            user.setUsername(username);
+
+            // Обновляем пароль, если он был указан
+            if (password != null && !password.isEmpty()) {
+                user.setPassword(passwordEncoder.encode(password));
+            }
+
+            userRepository.save(user);
+        }
+
+        return customerRepository.save(customer);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
 
     @Transactional
     public void deleteCustomer(Long id) {

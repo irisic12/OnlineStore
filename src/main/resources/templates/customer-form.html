@@ -7,8 +7,8 @@
 </head>
 <body>
 <div class="container mt-4">
-  <h1 th:text="${customerRequest != null && customerRequest.id != null} ? 'Редактирование клиента' : 'Добавление клиента'">
-    Добавление клиента
+  <h1 th:text="${isAdmin ? (isNewUser ? 'Добавление клиента' : 'Редактирование клиента') : 'Редактирование профиля'}">
+    Редактирование профиля
   </h1>
 
   <!-- Сообщения об ошибках -->
@@ -16,48 +16,33 @@
     <span th:text="${error}"></span>
   </div>
 
-  <!-- Форма -->
-  <form th:action="${customerRequest != null && customerRequest.id != null} ?
-                     '/customers/update/' + ${customerRequest.id} :
-                     '/customers/add'"
-        method="post">
+  <!-- Сообщения об успехе -->
+  <div th:if="${success}" class="alert alert-success">
+    <span th:text="${success}"></span>
+  </div>
 
-    <!-- Скрытое поле для ID -->
-    <input type="hidden" th:if="${customerRequest != null && customerRequest.id != null}"
-           name="id" th:value="${customerRequest.id}">
+  <!-- Форма -->
+  <form th:action="@{${actionUrl}}" method="post" th:object="${customerRequest}">
+
+    <!-- ID клиента (скрытое поле) -->
+    <input type="hidden" th:field="*{id}">
 
     <!-- Основные данные -->
     <div class="row">
       <div class="col-md-6 mb-3">
         <label for="firstName" class="form-label">Имя *</label>
-        <input type="text" id="firstName" name="firstName"
-               class="form-control" placeholder="Иван"
-               th:value="${customerRequest != null ? customerRequest.firstName : ''}"
-               required>
+        <input type="text" id="firstName" th:field="*{firstName}"
+               class="form-control" placeholder="Иван" required>
+        <div th:if="${#fields.hasErrors('firstName')}" class="text-danger">
+          <span th:errors="*{firstName}"></span>
+        </div>
       </div>
       <div class="col-md-6 mb-3">
         <label for="lastName" class="form-label">Фамилия *</label>
-        <input type="text" id="lastName" name="lastName"
-               class="form-control" placeholder="Иванов"
-               th:value="${customerRequest != null ? customerRequest.lastName : ''}"
-               required>
-      </div>
-    </div>
-
-    <!-- Поля только для создания нового пользователя -->
-    <div th:unless="${customerRequest != null && customerRequest.id != null}">
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="username" class="form-label">Логин *</label>
-          <input type="text" id="username" name="username"
-                 class="form-control" placeholder="ivanov"
-                 th:value="${customerRequest != null ? customerRequest.username : ''}"
-                 required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="password" class="form-label">Пароль *</label>
-          <input type="password" id="password" name="password"
-                 class="form-control" placeholder="Минимум 6 символов" required>
+        <input type="text" id="lastName" th:field="*{lastName}"
+               class="form-control" placeholder="Иванов" required>
+        <div th:if="${#fields.hasErrors('lastName')}" class="text-danger">
+          <span th:errors="*{lastName}"></span>
         </div>
       </div>
     </div>
@@ -65,39 +50,72 @@
     <!-- Email -->
     <div class="mb-3">
       <label for="email" class="form-label">Email *</label>
-      <input type="email" id="email" name="email"
-             class="form-control"
-             th:readonly="${customerRequest != null && customerRequest.id != null}"
-             th:value="${customerRequest != null ? customerRequest.email : ''}"
-             placeholder="ivanov@example.com" required>
+      <input type="email" id="email" th:field="*{email}"
+             class="form-control" placeholder="ivanov@example.com" required>
+      <div th:if="${#fields.hasErrors('email')}" class="text-danger">
+        <span th:errors="*{email}"></span>
+      </div>
     </div>
 
     <!-- Телефон -->
     <div class="mb-3">
       <label for="phone" class="form-label">Телефон *</label>
-      <input type="tel" id="phone" name="phone"
-             class="form-control" placeholder="+7 (999) 123-45-67"
-             th:value="${customerRequest != null ? customerRequest.phone : ''}"
-             required>
+      <input type="tel" id="phone" th:field="*{phone}"
+             class="form-control" placeholder="+7 (999) 123-45-67" required>
     </div>
 
     <!-- Адрес -->
     <div class="mb-3">
       <label for="address" class="form-label">Адрес *</label>
-      <textarea id="address" name="address"
+      <textarea id="address" th:field="*{address}"
                 class="form-control" rows="3"
-                placeholder="Город, улица, дом, квартира" required
-                th:text="${customerRequest != null ? customerRequest.address : ''}"></textarea>
+                placeholder="Город, улица, дом, квартира" required></textarea>
+    </div>
+
+    <!-- ПОЛЯ ТОЛЬКО ДЛЯ АДМИНА -->
+    <div th:if="${isAdmin}" class="card mt-4 mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5>Данные учетной записи (только для администратора)</h5>
+      </div>
+      <div class="card-body">
+        <!-- Логин - доступен для редактирования админом -->
+        <div class="mb-3">
+          <label for="username" class="form-label">Логин *</label>
+          <input type="text" id="username" th:field="*{username}"
+                 class="form-control" placeholder="ivanov" required>
+          <div th:if="${#fields.hasErrors('username')}" class="text-danger">
+            <span th:errors="*{username}"></span>
+          </div>
+          <small class="text-muted">Минимум 3 символа, только буквы, цифры и подчеркивание</small>
+        </div>
+
+        <!-- Пароль - для создания нового или смены существующего -->
+        <div class="mb-3">
+          <label for="password" class="form-label">
+            <span th:text="${isNewUser} ? 'Пароль *' : 'Новый пароль (оставьте пустым, если не хотите менять)'"></span>
+          </label>
+          <input type="password" id="password" th:field="*{password}"
+                 class="form-control"
+                 th:placeholder="${isNewUser} ? 'Минимум 6 символов' : 'Введите новый пароль'"
+                 th:required="${isNewUser}">
+          <div th:if="${#fields.hasErrors('password')}" class="text-danger">
+            <span th:errors="*{password}"></span>
+          </div>
+          <small th:unless="${isNewUser}" class="text-muted">
+            Заполните это поле, только если хотите сменить пароль пользователя
+          </small>
+        </div>
+      </div>
     </div>
 
     <!-- Кнопки -->
-    <div class="d-flex justify-content-between">
+    <div class="d-flex justify-content-between mt-3">
       <button type="submit" class="btn btn-primary">
-                <span th:text="${customerRequest != null && customerRequest.id != null} ? 'Сохранить изменения' : 'Добавить клиента'">
-                    Добавить клиента
+                <span th:text="${isAdmin ? (isNewUser ? 'Добавить клиента' : 'Сохранить изменения') : 'Сохранить профиль'}">
+                    Сохранить
                 </span>
       </button>
-      <a th:href="@{/customers}" class="btn btn-secondary">Отмена</a>
+      <a th:href="@{${cancelUrl}}" class="btn btn-secondary">Отмена</a>
     </div>
   </form>
 </div>

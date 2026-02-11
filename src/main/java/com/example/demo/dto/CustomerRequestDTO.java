@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CustomerRequestDTO {
 
-    private Long id; // Для редактирования
+    private Long id;
 
     @NotBlank(message = "Имя обязательно")
     @Size(min = 2, max = 50, message = "Имя должно быть от 2 до 50 символов")
@@ -34,12 +34,9 @@ public class CustomerRequestDTO {
     @NotBlank(message = "Адрес обязателен")
     private String address;
 
-    // Только для создания нового пользователя
-    @NotBlank(message = "Логин обязателен")
-    @Size(min = 3, max = 50, message = "Логин должен быть от 3 до 50 символов")
+    // Для админа (при создании и редактировании)
     private String username;
 
-    @NotBlank(message = "Пароль обязателен")
-    @Size(min = 6, message = "Пароль должен содержать минимум 6 символов")
+    // Только для создания нового пользователя
     private String password;
 }
