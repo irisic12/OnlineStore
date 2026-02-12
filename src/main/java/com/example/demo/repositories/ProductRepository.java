@@ -16,4 +16,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Найти продукты, цена которых больше определенной суммы
     List<Product> findByPriceGreaterThan(BigDecimal price);
 
+    List<Product> findByCategoryId(Long categoryId);
+
 }

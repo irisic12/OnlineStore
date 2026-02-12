@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -37,8 +38,9 @@ public class ProductControllerView {
     }
 
     @PostMapping("/add")
-    public String addProduct(@ModelAttribute Product product) {
+    public String addProduct(@ModelAttribute Product product, RedirectAttributes redirectAttributes) {
         productService.createProduct(product);
+        redirectAttributes.addFlashAttribute("success", "Товар успешно добавлен");
         return "redirect:/products";
     }
 
@@ -50,14 +52,22 @@ public class ProductControllerView {
     }
 
     @PostMapping("/update/{id}")
-    public String updateProduct(@PathVariable Long id, @ModelAttribute Product product) {
+    public String updateProduct(@PathVariable Long id, @ModelAttribute Product product, RedirectAttributes redirectAttributes) {
         productService.updateProduct(id, product);
+        redirectAttributes.addFlashAttribute("success", "Товар успешно обновлен");
         return "redirect:/products";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+    public String deleteProduct(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            productService.deleteProduct(id);
+            redirectAttributes.addFlashAttribute("success", "Товар успешно удален");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Невозможно удалить товар, так как с ним связаны заказы");
+        }
         return "redirect:/products";
     }
 }

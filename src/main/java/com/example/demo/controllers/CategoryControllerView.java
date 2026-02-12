@@ -6,6 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -33,8 +34,9 @@ public class CategoryControllerView {
     }
 
     @PostMapping("/add")
-    public String addCategory(@ModelAttribute Category category) {
+    public String addCategory(@ModelAttribute Category category, RedirectAttributes redirectAttributes) {
         categoryService.createCategory(category);
+        redirectAttributes.addFlashAttribute("success", "Категория успешно добавлена");
         return "redirect:/categories";
     }
 
@@ -45,14 +47,22 @@ public class CategoryControllerView {
     }
 
     @PostMapping("/update/{id}")
-    public String updateCategory(@PathVariable Long id, @ModelAttribute Category category) {
+    public String updateCategory(@PathVariable Long id, @ModelAttribute Category category, RedirectAttributes redirectAttributes) {
         categoryService.updateCategory(id, category);
+        redirectAttributes.addFlashAttribute("success", "Категория успешно обновлена");
         return "redirect:/categories";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
+    public String deleteCategory(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            categoryService.deleteCategory(id);
+            redirectAttributes.addFlashAttribute("success", "Категория успешно удалена");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении категории: " + e.getMessage());
+        }
         return "redirect:/categories";
     }
 }

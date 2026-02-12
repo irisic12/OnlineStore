@@ -9,6 +9,9 @@
 <div class="container mt-4">
   <h1>Управление категориями</h1>
 
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
   <a th:href="@{/categories/add}" class="btn btn-primary mb-3">Добавить категорию</a>
 
   <table class="table table-striped">

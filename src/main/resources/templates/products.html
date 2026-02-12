@@ -9,6 +9,9 @@
 <div class="container mt-4">
   <h1>Управление продуктами</h1>
 
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
   <a th:href="@{/products/add}" class="btn btn-primary mb-3">Добавить продукт</a>
 
   <table class="table table-striped">

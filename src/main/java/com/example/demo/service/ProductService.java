@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import com.example.demo.entities.OrderItem;
 import com.example.demo.entities.Product;
+import com.example.demo.repositories.OrderItemRepository;
 import com.example.demo.repositories.ProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +13,11 @@ import java.util.Optional;
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
+    private final OrderItemRepository orderItemRepository;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, OrderItemRepository orderItemRepository) {
         this.productRepository = productRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     public Product createProduct(Product product) {
@@ -56,6 +60,18 @@ public class ProductService {
     }
 
     public void deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Товар не найден"));
+
+        // Проверяем, есть ли этот товар в каких-либо заказах
+        List<OrderItem> orderItems = orderItemRepository.findById_ProductId(id);
+        if (orderItems != null && !orderItems.isEmpty()) {
+            throw new IllegalStateException(
+                    "Невозможно удалить товар '" + product.getName() +
+                            "', так как он присутствует в заказах (" + orderItems.size() + ")."
+            );
+        }
+
         productRepository.deleteById(id);
     }
 
