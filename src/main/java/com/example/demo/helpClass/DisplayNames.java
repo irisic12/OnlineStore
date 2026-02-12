@@ -12,7 +12,8 @@ public class DisplayNames {
             OrderStatus.IN_PROCESSING, "В обработке",
             OrderStatus.SENT, "Отправлен",
             OrderStatus.DELIVERED, "Доставлен",
-            OrderStatus.CANCELLED, "Отменен"
+            OrderStatus.CANCELLED, "Отменен",
+            OrderStatus.RETURNED, "Возвращен"
     );
 
     private static final Map<PaymentMethod, String> paymentMethodNames = Map.of(
