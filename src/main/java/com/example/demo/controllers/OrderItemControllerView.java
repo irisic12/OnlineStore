@@ -58,19 +58,19 @@ public class OrderItemControllerView {
             Product product = productService.getProductById(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Товар не найден"));
 
-            // Создаем элемент заказа
+            // Создаем элемент заказа с фиксацией цены
             OrderItem item = new OrderItem();
             item.setProduct(product);
             item.setQuantity(quantity);
+            item.setPrice(product.getPrice()); // ← ФИКСИРУЕМ ЦЕНУ НА МОМЕНТ ДОБАВЛЕНИЯ
             item.setId(new OrderItemId(orderId, productId));
 
-            // Добавляем в заказ (проверка на дубликат внутри сервиса)
+            // Добавляем в заказ
             orderService.addItemToOrder(orderId, item);
 
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно добавлен");
 
         } catch (IllegalArgumentException e) {
-            // Это наше исключение о дубликате
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());

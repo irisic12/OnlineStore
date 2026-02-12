@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "OrderItem")
 @Getter
@@ -30,10 +32,18 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price; // Цена на момент добавления в заказ
+
     public void setQuantity(Integer quantity) {
         if (quantity == null || quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than zero.");
         }
         this.quantity = quantity;
+    }
+
+    // Метод для получения суммы по позиции
+    public BigDecimal getSubtotal() {
+        return price.multiply(BigDecimal.valueOf(quantity));
     }
 }

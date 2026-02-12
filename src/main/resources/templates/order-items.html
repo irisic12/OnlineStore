@@ -54,7 +54,7 @@
     <tbody>
     <tr th:each="item : ${orderItems}">
       <td th:text="${item.product.name}"></td>
-      <td th:text="${item.product.price} + ' ₽'"></td>
+      <td th:text="${item.price} + ' ₽'"></td>
       <td>
         <form th:action="@{/orders/{orderId}/items/update(orderId=${order.id})}"
               method="post" class="d-flex">
@@ -64,7 +64,7 @@
           <button type="submit" class="btn btn-sm btn-warning">Обновить</button>
         </form>
       </td>
-      <td th:text="${item.product.price * item.quantity} + ' ₽'"></td>
+      <td th:text="${item.price * item.quantity} + ' ₽'"></td>
       <td>
         <form th:action="@{/orders/{orderId}/items/delete(orderId=${order.id})}"
               method="post" style="display: inline;">

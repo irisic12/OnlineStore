@@ -61,10 +61,9 @@ public class Order {
     @PostUpdate
     @PostPersist
     public void calculateTotal() {
-        if (orderItems != null) {
+        if (orderItems != null && !orderItems.isEmpty()) {
             this.totalAmount = orderItems.stream()
-                    .map(item -> item.getProduct().getPrice()
-                            .multiply(BigDecimal.valueOf(item.getQuantity())))
+                    .map(OrderItem::getSubtotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         } else {
             this.totalAmount = BigDecimal.ZERO;

@@ -48,12 +48,11 @@ public class OrderItemControllerApi {
         orderItemId.setProductId(product.getId());
         orderItem.setId(orderItemId);
         orderItem.setQuantity(quantity);
+        orderItem.setPrice(product.getPrice()); // ← ФИКСИРУЕМ ЦЕНУ
         orderItem.setOrder(order);
         orderItem.setProduct(product);
 
         OrderItem savedItem = orderItemService.createOrderItem(orderItem);
-
-        // Явное обновление заказа
         orderService.recalculateOrderTotal(orderId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
