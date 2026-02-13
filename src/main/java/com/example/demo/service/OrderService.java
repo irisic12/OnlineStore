@@ -35,9 +35,8 @@ public class OrderService {
     }
 
     public Optional<Order> getOrderById(Long id) {
-        Optional<Order> orderOpt = orderRepository.findById(id);
-        orderOpt.ifPresent(Order::calculateTotal);
-        return orderOpt;
+        return orderRepository.findById(id);
+        // Убираем calculateTotal() отсюда, чтобы не вызывать его лишний раз
     }
 
     public List<Order> getOrdersByCustomerId(Long customerId) {
@@ -50,44 +49,21 @@ public class OrderService {
 
     @Transactional
     public Order updateOrder(Long id, Order updatedOrder) {
-        return orderRepository.findByIdWithItems(id) // Используем метод с загрузкой items
+        return orderRepository.findById(id)
                 .map(existingOrder -> {
-                    // Сохраняем текущую сумму перед изменениями
-                    BigDecimal previousTotal = existingOrder.getTotalAmount();
+                    // Обновляем только поля, которые могли измениться в форме
+                    existingOrder.setOrderDate(updatedOrder.getOrderDate());
+                    existingOrder.setStatus(updatedOrder.getStatus());
+                    existingOrder.setPaymentMethod(updatedOrder.getPaymentMethod());
+                    existingOrder.setShippingAddress(updatedOrder.getShippingAddress());
 
-                    // Обновляем базовые поля
-                    if (updatedOrder.getOrderDate() != null) {
-                        existingOrder.setOrderDate(updatedOrder.getOrderDate());
+                    // Обновляем клиента
+                    if (updatedOrder.getCustomer() != null) {
+                        existingOrder.setCustomer(updatedOrder.getCustomer());
                     }
 
-                    if (updatedOrder.getStatus() != null) {
-                        existingOrder.setStatus(updatedOrder.getStatus());
-                    }
-
-                    if (updatedOrder.getShippingAddress() != null && !updatedOrder.getShippingAddress().isEmpty()) {
-                        existingOrder.setShippingAddress(updatedOrder.getShippingAddress());
-                    }
-
-                    if (updatedOrder.getPaymentMethod() != null) {
-                        existingOrder.setPaymentMethod(updatedOrder.getPaymentMethod());
-                    }
-
-                    // Обновляем клиента без сброса totalAmount
-                    if (updatedOrder.getCustomer() != null && updatedOrder.getCustomer().getId() != null
-                            && (existingOrder.getCustomer() == null
-                            || !updatedOrder.getCustomer().getId().equals(existingOrder.getCustomer().getId()))) {
-                        // Создаем новый объект Customer только с ID
-                        Customer customer = new Customer();
-                        customer.setId(updatedOrder.getCustomer().getId());
-                        existingOrder.setCustomer(customer);
-                    }
-
-                    // Восстанавливаем original totalAmount если он не был явно задан
-                    if (updatedOrder.getTotalAmount() == null) {
-                        existingOrder.setTotalAmount(previousTotal);
-                    } else {
-                        existingOrder.setTotalAmount(updatedOrder.getTotalAmount());
-                    }
+                    // ВАЖНО: НЕ трогаем orderItems и totalAmount - они остаются как есть
+                    // totalAmount пересчитается отдельным методом
 
                     return orderRepository.save(existingOrder);
                 })
@@ -164,5 +140,15 @@ public class OrderService {
 
         // Явно удаляем из БД
         orderItemRepository.deleteById(itemId);
+    }
+
+    @Transactional
+    public void deleteOrderWithItems(Long orderId) {
+        Order order = orderRepository.findByIdWithItems(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Заказ не найден"));
+
+        // Благодаря cascade = CascadeType.ALL и orphanRemoval = true,
+        // все OrderItem удалятся автоматически при удалении заказа
+        orderRepository.delete(order);
     }
 }

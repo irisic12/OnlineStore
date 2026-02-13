@@ -3,28 +3,23 @@ package com.example.demo.controllers;
 import com.example.demo.entities.Customer;
 import com.example.demo.entities.Order;
 import com.example.demo.entities.OrderItem;
-import com.example.demo.entities.Product;
 import com.example.demo.enums.OrderStatus;
 import com.example.demo.enums.PaymentMethod;
-import com.example.demo.helpClass.OrderItemId;
 import com.example.demo.service.CustomerService;
 import com.example.demo.service.OrderItemService;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.ProductService;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 @Controller
 @RequestMapping("/orders")
-@PreAuthorize("hasRole('ADMIN')")
 public class OrderControllerView {
     private final OrderService orderService;
     private final OrderItemService orderItemService;
@@ -60,42 +55,65 @@ public class OrderControllerView {
     public String addOrder(
             @ModelAttribute Order order,
             @RequestParam Long customerId,
-            Model model) {
+            RedirectAttributes redirectAttributes) {
 
         try {
-            // Устанавливаем клиента
             Customer customer = customerService.getCustomerById(customerId).orElseThrow();
             order.setCustomer(customer);
             order.setTotalAmount(BigDecimal.ZERO);
 
-            // Устанавливаем текущую дату, если не указана
             if (order.getOrderDate() == null) {
                 order.setOrderDate(new Date());
             }
 
-            // Проверка обязательных полей
-            if (order.getStatus() == null ||
-                    order.getShippingAddress() == null || order.getShippingAddress().isEmpty()) {
-                throw new IllegalArgumentException("Заполните все обязательные поля");
-            }
+            Order savedOrder = orderService.createOrder(order);
 
-            orderService.createOrder(order);
-            return "redirect:/orders";
+            // После создания сразу переходим на страницу добавления товаров
+            redirectAttributes.addFlashAttribute("info", "Заказ создан. Теперь добавьте товары.");
+            return "redirect:/orders/" + savedOrder.getId() + "/items";
 
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            model.addAttribute("order", order);
-            model.addAttribute("customers", customerService.getAllCustomers());
-            model.addAttribute("statuses", OrderStatus.values());
-            model.addAttribute("paymentMethods", PaymentMethod.values());
-            return "order-form";
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/orders/add";
+        }
+    }
+
+    @PostMapping("/add-and-go-to-items")
+    public String addOrderAndGoToItems(
+            @ModelAttribute Order order,
+            @RequestParam Long customerId,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            Customer customer = customerService.getCustomerById(customerId).orElseThrow();
+            order.setCustomer(customer);
+            order.setTotalAmount(BigDecimal.ZERO);
+
+            if (order.getOrderDate() == null) {
+                order.setOrderDate(new Date());
+            }
+
+            Order savedOrder = orderService.createOrder(order);
+
+            // Передаем параметр, что это новый заказ
+            return "redirect:/orders/" + savedOrder.getId() + "/items?new=true";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/orders/add";
         }
     }
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         Order order = orderService.getOrderById(id).orElseThrow();
+
+        // Получаем количество товаров в заказе
+        List<OrderItem> orderItems = orderItemService.getOrderItemsByOrderId(id);
+        int itemsCount = orderItems != null ? orderItems.size() : 0;
+
         model.addAttribute("order", order);
+        model.addAttribute("orderItemsCount", itemsCount);
         model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("statuses", OrderStatus.values());
         model.addAttribute("paymentMethods", PaymentMethod.values());
@@ -108,24 +126,74 @@ public class OrderControllerView {
                               @RequestParam Long customerId,
                               Model model) {
         try {
-            Customer customer = customerService.getCustomerById(customerId).orElseThrow();
-            order.setCustomer(customer);
-            orderService.updateOrder(id, order);
+            // Получаем существующий заказ из БД
+            Order existingOrder = orderService.getOrderById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Заказ не найден"));
+
+            // Проверяем наличие товаров
+            List<OrderItem> existingItems = orderItemService.getOrderItemsByOrderId(id);
+            if (existingItems == null || existingItems.isEmpty()) {
+                model.addAttribute("error", "НЕЛЬЗЯ СОХРАНИТЬ ЗАКАЗ БЕЗ ТОВАРОВ. Сначала добавьте товары.");
+                model.addAttribute("order", existingOrder);
+                model.addAttribute("customers", customerService.getAllCustomers());
+                model.addAttribute("statuses", OrderStatus.values());
+                model.addAttribute("paymentMethods", PaymentMethod.values());
+
+                // Добавляем количество товаров для отображения
+                model.addAttribute("orderItemsCount", 0);
+                return "order-form";
+            }
+
+            // Обновляем только поля заказа из формы
+            existingOrder.setOrderDate(order.getOrderDate());
+            existingOrder.setStatus(order.getStatus());
+            existingOrder.setPaymentMethod(order.getPaymentMethod());
+            existingOrder.setShippingAddress(order.getShippingAddress());
+
+            // Обновляем клиента
+            Customer customer = new Customer();
+            customer.setId(customerId);
+            existingOrder.setCustomer(customer);
+
+            // Сохраняем заказ (НЕ создаем новый объект)
+            orderService.updateOrder(id, existingOrder);
+
+            // Пересчитываем сумму
             orderService.recalculateOrderTotal(id);
+
             return "redirect:/orders";
+
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            model.addAttribute("order", order);
+            e.printStackTrace();
+            model.addAttribute("error", "Ошибка при сохранении: " + e.getMessage());
+
+            // Загружаем заказ заново для отображения в форме
+            Order orderForForm = orderService.getOrderById(id).orElse(order);
+            model.addAttribute("order", orderForForm);
             model.addAttribute("customers", customerService.getAllCustomers());
             model.addAttribute("statuses", OrderStatus.values());
             model.addAttribute("paymentMethods", PaymentMethod.values());
+
+            // Добавляем количество товаров
+            try {
+                List<OrderItem> items = orderItemService.getOrderItemsByOrderId(id);
+                model.addAttribute("orderItemsCount", items != null ? items.size() : 0);
+            } catch (Exception ex) {
+                model.addAttribute("orderItemsCount", 0);
+            }
             return "order-form";
         }
     }
 
+
     @GetMapping("/delete/{id}")
-    public String deleteOrder(@PathVariable Long id) {
-        orderService.deleteOrder(id);
+    public String deleteOrder(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            orderService.deleteOrder(id);
+            redirectAttributes.addFlashAttribute("success", "Заказ удален");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка удаления: " + e.getMessage());
+        }
         return "redirect:/orders";
     }
 }

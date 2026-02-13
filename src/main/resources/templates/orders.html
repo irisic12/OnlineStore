@@ -30,7 +30,7 @@
       <td>
         <a th:href="@{/orders/edit/{id}(id=${order.id})}" class="btn btn-sm btn-warning">Редактировать</a>
         <a th:href="@{/orders/delete/{id}(id=${order.id})}" class="btn btn-sm btn-danger">Удалить</a>
-        <a th:href="@{/orders/{id}/items(id=${order.id})}" class="btn btn-sm btn-info">Товары</a>
+        <a th:href="@{/orders/{id}/items(id=${order.id}, from='list')}" class="btn btn-sm btn-info">Товары</a>
       </td>
     </tr>
     </tbody>

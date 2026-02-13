@@ -7,7 +7,6 @@ import com.example.demo.helpClass.OrderItemId;
 import com.example.demo.service.OrderItemService;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.ProductService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,6 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/orders/{orderId}/items")
-@PreAuthorize("hasRole('ADMIN')")
 public class OrderItemControllerView {
     private final OrderItemService orderItemService;
     private final OrderService orderService;
@@ -32,7 +30,9 @@ public class OrderItemControllerView {
     }
 
     @GetMapping
-    public String showOrderItems(@PathVariable Long orderId, Model model) {
+    public String showOrderItems(@PathVariable Long orderId,
+                                 @RequestParam(required = false) String from,
+                                 Model model) {
         try {
             Order order = orderService.getOrderById(orderId)
                     .orElseThrow(() -> new IllegalArgumentException("Заказ не найден"));
@@ -41,6 +41,16 @@ public class OrderItemControllerView {
             model.addAttribute("order", order);
             model.addAttribute("orderItems", orderItems);
             model.addAttribute("allProducts", productService.getAllProducts());
+            model.addAttribute("hasItems", !orderItems.isEmpty());
+
+            if ("list".equals(from)) {
+                model.addAttribute("backUrl", "/orders");
+                model.addAttribute("backText", "Назад к списку заказов");
+            } else {
+                model.addAttribute("backUrl", "/orders/edit/" + orderId);
+                model.addAttribute("backText", "Вернуться к заказу");
+            }
+
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
         }
@@ -51,21 +61,19 @@ public class OrderItemControllerView {
     public String addItem(@PathVariable Long orderId,
                           @RequestParam Long productId,
                           @RequestParam Integer quantity,
+                          @RequestParam(required = false) String from,
                           RedirectAttributes redirectAttributes) {
 
         try {
-            // Получаем товар
             Product product = productService.getProductById(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Товар не найден"));
 
-            // Создаем элемент заказа с фиксацией цены
             OrderItem item = new OrderItem();
             item.setProduct(product);
             item.setQuantity(quantity);
-            item.setPrice(product.getPrice()); // ← ФИКСИРУЕМ ЦЕНУ НА МОМЕНТ ДОБАВЛЕНИЯ
+            item.setPrice(product.getPrice());
             item.setId(new OrderItemId(orderId, productId));
 
-            // Добавляем в заказ
             orderService.addItemToOrder(orderId, item);
 
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно добавлен");
@@ -76,26 +84,23 @@ public class OrderItemControllerView {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }
 
-        return "redirect:/orders/" + orderId + "/items";
+        String fromParam = (from != null && !from.isEmpty()) ? "?from=" + from : "";
+        return "redirect:/orders/" + orderId + "/items" + fromParam;
     }
 
     @PostMapping("/update")
     public String updateOrderItem(@PathVariable Long orderId,
                                   @RequestParam Long productId,
                                   @RequestParam Integer quantity,
+                                  @RequestParam(required = false) String from,
                                   RedirectAttributes redirectAttributes) {
         try {
             OrderItemId id = new OrderItemId(orderId, productId);
-
-            // Получаем существующий элемент
             OrderItem orderItem = orderItemService.getOrderItemById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Товар не найден в заказе"));
 
-            // Обновляем количество
             orderItem.setQuantity(quantity);
             orderItemService.createOrderItem(orderItem);
-
-            // Пересчитываем сумму заказа
             orderService.recalculateOrderTotal(orderId);
 
             redirectAttributes.addFlashAttribute("successMessage", "Количество обновлено");
@@ -104,12 +109,13 @@ public class OrderItemControllerView {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }
 
-        return "redirect:/orders/" + orderId + "/items";
+        return "redirect:/orders/" + orderId + "/items" + (from != null ? "?from=" + from : "");
     }
 
     @PostMapping("/delete")
     public String deleteItem(@PathVariable Long orderId,
                              @RequestParam Long productId,
+                             @RequestParam(required = false) String from,
                              RedirectAttributes redirectAttributes) {
         try {
             OrderItemId itemId = new OrderItemId(orderId, productId);
@@ -119,6 +125,26 @@ public class OrderItemControllerView {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }
 
-        return "redirect:/orders/" + orderId + "/items";
+        return "redirect:/orders/" + orderId + "/items" + (from != null ? "?from=" + from : "");
+    }
+
+    @GetMapping("/cancel")
+    public String cancelOrderCreation(@RequestParam Long orderId,
+                                      @RequestParam(required = false) String from,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            // Проверяем, это новый заказ или существующий
+            // Можно передавать параметр isNew=true при создании
+            if ("new".equals(from)) {
+                // Удаляем заказ вместе со всеми товарами
+                orderService.deleteOrderWithItems(orderId);
+                redirectAttributes.addFlashAttribute("info", "Создание заказа отменено");
+            }
+            // Если это редактирование - просто возвращаемся без удаления
+            return "redirect:/orders";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при отмене: " + e.getMessage());
+            return "redirect:/orders";
+        }
     }
 }

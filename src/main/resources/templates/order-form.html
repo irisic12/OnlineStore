@@ -7,13 +7,21 @@
 </head>
 <body>
 <div class="container mt-4">
-  <h1 th:text="${order.id} ? 'Редактирование заказа' : 'Добавление заказа'"></h1>
+  <div class="d-flex justify-content-between align-items-center">
+    <h1 th:text="${order.id} ? 'Редактирование заказа' : 'Добавление заказа'"></h1>
+    <!-- Кнопка перехода к товарам (только для существующих заказов) -->
+    <a th:if="${order.id != null}"
+       th:href="@{/orders/{id}/items(id=${order.id})}"
+       class="btn btn-info">
+      Перейти к товарам
+    </a>
+  </div>
 
   <!-- Отображение ошибок -->
   <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
   <form th:action="${order.id == null} ? '/orders/add' : '/orders/update/' + ${order.id}" method="post">
-    <input type="hidden" th:name="id" th:value="${order.id}">
+    <input type="hidden" name="id" th:value="${order.id}">
     <div class="mb-3">
       <label for="orderDate" class="form-label">Дата заказа</label>
       <input type="date" class="form-control" id="orderDate" name="orderDate"
