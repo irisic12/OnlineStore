@@ -86,7 +86,7 @@
               method="post">
           <input type="hidden" name="productId" th:value="${item.product.id}">
           <input type="hidden" name="from" th:value="${param.from != null ? param.from : ''}">
-          <button th:if="${order.status == OrderStatus.}" type="submit" class="btn btn-sm btn-danger">Удалить</button>
+          <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
         </form>
       </td>
     </tr>
