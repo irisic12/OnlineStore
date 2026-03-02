@@ -268,7 +268,7 @@ public class UserProfileController {
                     }
 
                     // Очищаем корзину в БД
-                    cartService.clearCart();
+                    cartService.deleteCart();
                     //log.info("Корзина очищена");
 
                     redirectAttributes.addFlashAttribute("success",

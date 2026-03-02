@@ -78,6 +78,16 @@ public class CartService {
     public void clearCart() {
         Cart cart = getCart();
         cartItemRepository.deleteByCartId(cart.getId());
+        cartRepository.delete(cart);
+    }
+
+    @Transactional
+    public void deleteCart() {
+        User currentUser = userService.getCurrentUser()
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+
+        // Удаляем корзину по userId (каскадно удалятся и CartItem)
+        cartRepository.deleteByUserId(currentUser.getId());
     }
 
     public int getCartSize() {
