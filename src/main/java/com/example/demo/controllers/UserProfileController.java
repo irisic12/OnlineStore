@@ -1,16 +1,20 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.CustomerRequestDTO;
+import com.example.demo.entities.Cart;
+import com.example.demo.entities.CartItem;
 import com.example.demo.entities.Customer;
 import com.example.demo.entities.Order;
 import com.example.demo.entities.OrderItem;
 import com.example.demo.entities.Product;
 import com.example.demo.enums.OrderStatus;
 import com.example.demo.enums.PaymentMethod;
+import com.example.demo.service.CartService;
 import com.example.demo.service.CustomerService;
 import com.example.demo.service.OrderItemService;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.ProductService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +29,9 @@ import java.util.Date;
 import java.util.List;
 import com.example.demo.helpClass.OrderItemId;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -34,6 +41,7 @@ public class UserProfileController {
     private final OrderService orderService;
     private final ProductService productService;
     private final OrderItemService orderItemService;
+    private final CartService cartService;
 
     @GetMapping("/profile")
     @PreAuthorize("hasRole('USER')")
@@ -213,6 +221,7 @@ public class UserProfileController {
             @RequestParam Long customerId,
             @RequestParam PaymentMethod paymentMethod,
             @RequestParam String shippingAddress,
+            @RequestParam(required = false) Boolean fromCart,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -227,11 +236,55 @@ public class UserProfileController {
             order.setTotalAmount(BigDecimal.ZERO);
 
             Order savedOrder = orderService.createOrder(order);
+            //log.info("Заказ создан: ID={}", savedOrder.getId());
+
+            // Если пришли из корзины
+            if (fromCart != null && fromCart) {
+
+                // Получаем корзину из БД через сервис
+                Cart cart = cartService.getCart();
+                //log.info("Корзина: items count = {}", cart.getItems().size());
+
+                if (cart != null && !cart.getItems().isEmpty()) {
+
+                    //log.info("Добавление товаров из корзины в заказ #{}", savedOrder.getId());
+
+                    // Добавляем все товары из корзины в заказ
+                    for (CartItem cartItem : cart.getItems()) {
+                        Product product = cartItem.getProduct();
+                        Integer quantity = cartItem.getQuantity();
+
+                        //log.info("Обработка товара: {} x {}", product.getName(), quantity);
+
+                        OrderItem orderItem = new OrderItem();
+                        orderItem.setProduct(product);
+                        orderItem.setQuantity(quantity);
+                        orderItem.setPrice(product.getPrice());
+                        orderItem.setId(new OrderItemId(savedOrder.getId(), product.getId()));
+
+                        // Сохраняем в БД
+                        orderService.addItemToOrder(savedOrder.getId(), orderItem);
+                        //log.info("Товар добавлен в заказ: {} x {}", product.getName(), quantity);
+                    }
+
+                    // Очищаем корзину в БД
+                    cartService.clearCart();
+                    //log.info("Корзина очищена");
+
+                    redirectAttributes.addFlashAttribute("success",
+                            "Заказ создан и товары из корзины добавлены.");
+
+                    return "redirect:/user/orders/" + savedOrder.getId() + "/items?new=true";
+                } else {
+                    //log.warn("Корзина пуста");
+                }
+            }
 
             redirectAttributes.addFlashAttribute("success", "Заказ создан. Теперь добавьте товары.");
             return "redirect:/user/orders/" + savedOrder.getId() + "/items?new=true";
 
         } catch (Exception e) {
+            //log.error("Ошибка при создании заказа: ", e);
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/user/orders/add";
         }

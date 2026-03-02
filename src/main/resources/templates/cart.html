@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Корзина</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Корзина</h1>
+    <div>
+      <a th:href="@{/products}" class="btn btn-primary me-2">Продолжить покупки</a>
+      <a th:href="@{/}" class="btn btn-secondary">На главную</a>
+    </div>
+  </div>
+
+  <!-- Сообщения -->
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+  <div th:if="${cart.items.isEmpty()}" class="alert alert-info text-center py-5">
+    <h4 class="mb-3">Корзина пуста</h4>
+    <p class="mb-4">Добавьте товары в корзину, чтобы оформить заказ.</p>
+    <a th:href="@{/products}" class="btn btn-primary">Перейти в каталог</a>
+  </div>
+
+  <div th:unless="${cart.items.isEmpty()}">
+    <table class="table table-striped">
+      <thead>
+      <tr>
+        <th>Товар</th>
+        <th>Цена</th>
+        <th>Количество</th>
+        <th>Сумма</th>
+        <th>Действия</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="item : ${cart.items}">
+        <td th:text="${item.product.name}"></td>
+        <td th:text="${item.product.price} + ' ₽'"></td>
+        <td>
+          <form th:action="@{/cart/update}" method="post" class="d-flex">
+            <input type="hidden" name="productId" th:value="${item.product.id}">
+            <input type="number" name="quantity" th:value="${item.quantity}"
+                   min="1" class="form-control me-2" style="width: 80px;">
+            <button type="submit" class="btn btn-sm btn-warning">Обновить</button>
+          </form>
+        </td>
+        <td th:text="${item.totalPrice} + ' ₽'"></td>
+        <td>
+          <form th:action="@{/cart/remove}" method="post" style="display: inline;">
+            <input type="hidden" name="productId" th:value="${item.product.id}">
+            <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr class="fw-bold">
+        <td colspan="3" class="text-end">Итого:</td>
+        <td th:text="${cart.totalPrice} + ' ₽'"></td>
+        <td>
+          <form th:action="@{/cart/clear}" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-sm btn-secondary"
+                    onclick="return confirm('Очистить корзину?')">Очистить</button>
+          </form>
+        </td>
+      </tr>
+      </tfoot>
+    </table>
+
+    <div class="text-end mt-3">
+      <a th:href="@{/cart/checkout}" class="btn btn-success btn-lg">
+        <i class="bi bi-check-circle"></i> Оформить заказ
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

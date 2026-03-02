@@ -4,6 +4,7 @@ import com.example.demo.entities.Category;
 import com.example.demo.entities.Product;
 import com.example.demo.service.CategoryService;
 import com.example.demo.service.ProductService;
+import com.example.demo.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,19 +19,48 @@ import java.util.List;
 public class ProductControllerView {
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final UserService userService;
 
-    public ProductControllerView(ProductService productService, CategoryService categoryService) {
+    public ProductControllerView(ProductService productService,
+                                 CategoryService categoryService,
+                                 UserService userService) {
         this.productService = productService;
         this.categoryService = categoryService;
+        this.userService = userService;
     }
 
     @GetMapping
-    public String getAllProducts(Model model) {
-        model.addAttribute("products", productService.getAllProducts());
+    public String getAllProducts(@RequestParam(required = false) Long categoryId,
+                                 @RequestParam(required = false) String search,
+                                 Model model) {
+
+        // Получаем текущего пользователя и его роль
+        boolean isAdmin = userService.getCurrentUser()
+                .map(user -> user.hasRole(com.example.demo.enums.Role.ROLE_ADMIN))
+                .orElse(false);
+
+        List<Product> products;
+
+        // Применяем фильтры
+        if (search != null && !search.isEmpty()) {
+            products = productService.searchProductsByName(search);
+        } else if (categoryId != null) {
+            products = productService.getProductsByCategoryId(categoryId);
+        } else {
+            products = productService.getAllProducts();
+        }
+
+        model.addAttribute("products", products);
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("selectedCategory", categoryId);
+        model.addAttribute("searchQuery", search);
+        model.addAttribute("isAdmin", isAdmin);  // ← передаём роль в шаблон
+
         return "products";
     }
 
     @GetMapping("/add")
+    @PreAuthorize("hasRole('ADMIN')")
     public String showAddForm(Model model) {
         model.addAttribute("product", new Product());
         model.addAttribute("categories", categoryService.getAllCategories());
@@ -38,6 +68,7 @@ public class ProductControllerView {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasRole('ADMIN')")
     public String addProduct(@ModelAttribute Product product, RedirectAttributes redirectAttributes) {
         productService.createProduct(product);
         redirectAttributes.addFlashAttribute("success", "Товар успешно добавлен");
@@ -45,6 +76,7 @@ public class ProductControllerView {
     }
 
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("product", productService.getProductById(id).orElse(null));
         model.addAttribute("categories", categoryService.getAllCategories());
@@ -52,6 +84,7 @@ public class ProductControllerView {
     }
 
     @PostMapping("/update/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String updateProduct(@PathVariable Long id, @ModelAttribute Product product, RedirectAttributes redirectAttributes) {
         productService.updateProduct(id, product);
         redirectAttributes.addFlashAttribute("success", "Товар успешно обновлен");
@@ -59,6 +92,7 @@ public class ProductControllerView {
     }
 
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteProduct(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             productService.deleteProduct(id);

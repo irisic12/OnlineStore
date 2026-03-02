@@ -154,6 +154,16 @@
                 <button type="submit" class="btn btn-outline-secondary">Выйти</button>
             </form>
         </div>
+
+        <div class="position-relative d-inline-block me-3">
+            <a th:href="@{/cart}" class="btn btn-outline-success position-relative">
+                🛒 Корзина
+                <span th:if="${session.cart != null and !session.cart.items.isEmpty()}"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            <span th:text="${session.cart.totalItems}"></span>
+        </span>
+            </a>
+        </div>
     </div>
 
     <!-- Для неавторизованных -->

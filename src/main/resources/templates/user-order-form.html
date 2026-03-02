@@ -7,6 +7,13 @@
 </head>
 <body>
 <div class="container mt-4">
+
+  <!-- Если пришли из корзины, показываем информацию -->
+  <div th:if="${fromCart}" class="alert alert-info mb-3">
+    <i class="bi bi-info-circle"></i>
+    Товары из корзины будут автоматически добавлены в заказ.
+  </div>
+
   <div class="d-flex justify-content-between align-items-center">
     <h1 th:text="${order.id} ? 'Просмотр заказа' : 'Добавление заказа'"></h1>
 
@@ -66,6 +73,8 @@
 
   <!-- Форма для создания нового заказа (только если не readonly) -->
   <form th:unless="${readonly}" th:action="@{/user/orders/add}" method="post">
+
+    <input type="hidden" name="fromCart" th:value="${fromCart}">
     <input type="hidden" name="id" th:value="${order.id}">
 
     <!-- Дата заказа (только для чтения) -->
