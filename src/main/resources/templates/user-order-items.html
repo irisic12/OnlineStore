@@ -73,6 +73,8 @@
       <th>Количество</th>
       <th>Сумма</th>
       <th th:if="${canEdit}">Действия</th>
+      <th th:if="${order.status == T(com.example.demo.enums.OrderStatus).DELIVERED or
+                   order.status == T(com.example.demo.enums.OrderStatus).RETURNED}">Отзыв</th>
     </tr>
     </thead>
     <tbody>
@@ -100,6 +102,44 @@
           <input type="hidden" name="from" th:value="${param.from != null ? param.from[0] : ''}">
           <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
         </form>
+      </td>
+      <!-- В теле таблицы, внутри цикла по товарам -->
+      <td th:if="${order.status == T(com.example.demo.enums.OrderStatus).DELIVERED or
+             order.status == T(com.example.demo.enums.OrderStatus).RETURNED}">
+
+        <!-- Проверяем, есть ли уже отзыв -->
+        <th:block th:with="reviewExists=${reviewMap != null and reviewMap.containsKey(item.product.id)}">
+
+          <!-- Если отзыв уже есть -->
+          <div th:if="${reviewExists}" class="btn-group" role="group">
+            <a th:href="@{/reviews/view/{id}(id=${reviewMap.get(item.product.id).id})}"
+               class="btn btn-sm btn-outline-info"
+               title="Просмотреть отзыв">
+              👁️ Просмотр
+            </a>
+            <a th:href="@{/reviews/edit/{id}(id=${reviewMap.get(item.product.id).id})}"
+               class="btn btn-sm btn-outline-warning"
+               title="Редактировать отзыв">
+              ✏️ Ред.
+            </a>
+            <form th:action="@{/reviews/delete/{id}(id=${reviewMap.get(item.product.id).id})}"
+                  method="post" style="display: inline;">
+              <button type="submit" class="btn btn-sm btn-outline-danger"
+                      onclick="return confirm('Удалить отзыв?')"
+                      title="Удалить отзыв">
+                🗑️ Удал.
+              </button>
+            </form>
+          </div>
+
+          <!-- Если отзыва еще нет -->
+          <div th:unless="${reviewExists}">
+            <a th:href="@{/reviews/add-form?productId={productId}&orderId={orderId}(productId=${item.product.id}, orderId=${order.id})}"
+               class="btn btn-sm btn-outline-primary">
+              ⭐ Оставить отзыв
+            </a>
+          </div>
+        </th:block>
       </td>
     </tr>
     </tbody>

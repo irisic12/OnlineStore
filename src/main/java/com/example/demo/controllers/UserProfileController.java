@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.CustomerRequestDTO;
+import com.example.demo.dto.ReviewResponseDTO;
 import com.example.demo.entities.Cart;
 import com.example.demo.entities.CartItem;
 import com.example.demo.entities.Customer;
@@ -14,6 +15,7 @@ import com.example.demo.service.CustomerService;
 import com.example.demo.service.OrderItemService;
 import com.example.demo.service.OrderService;
 import com.example.demo.service.ProductService;
+import com.example.demo.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.example.demo.helpClass.OrderItemId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +47,7 @@ public class UserProfileController {
     private final ProductService productService;
     private final OrderItemService orderItemService;
     private final CartService cartService;
+    private final ReviewService reviewService;
 
     @GetMapping("/profile")
     @PreAuthorize("hasRole('USER')")
@@ -311,9 +317,17 @@ public class UserProfileController {
 
             List<OrderItem> orderItems = orderItemService.getOrderItemsByOrderId(id);
 
+            // Получаем все отзывы пользователя на товары в этом заказе
+            Map<Long, ReviewResponseDTO> reviewMap = new HashMap<>();
+            for (OrderItem item : orderItems) {
+                reviewService.getUserReviewForProductInOrder(id, item.getProduct().getId())
+                        .ifPresent(review -> reviewMap.put(item.getProduct().getId(), review));
+            }
+
             model.addAttribute("order", order);
             model.addAttribute("orderItems", orderItems);
             model.addAttribute("allProducts", productService.getAllProducts());
+            model.addAttribute("reviewMap", reviewMap);
 
             // ЛОГИКА:
             // Редактирование доступно ТОЛЬКО если:
