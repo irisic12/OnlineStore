@@ -4,33 +4,68 @@
   <meta charset="UTF-8">
   <title th:text="${isAdmin} ? 'Управление продуктами' : 'Каталог товаров'"></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    .rating-stars {
+      color: #ffc107;
+      font-size: 1.2rem;
+    }
+    .rating-number {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-left: 5px;
+    }
+    .reviews-count {
+      color: #0d6efd;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .reviews-count:hover {
+      text-decoration: underline;
+    }
+    .review-item {
+      border-bottom: 1px solid #dee2e6;
+      padding: 10px 0;
+    }
+    .review-item:last-child {
+      border-bottom: none;
+    }
+    .review-author {
+      font-weight: bold;
+      color: #495057;
+    }
+    .review-date {
+      color: #6c757d;
+      font-size: 0.85rem;
+    }
+    .review-comment {
+      margin-top: 5px;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Каталог товаров</h1>
+    <h1 th:text="${isAdmin} ? 'Управление продуктами' : 'Каталог товаров'"></h1>
     <div>
-      <!-- Кнопка добавления только для админа -->
       <a th:if="${isAdmin}" th:href="@{/products/add}" class="btn btn-primary me-2">Добавить продукт</a>
       <a th:href="@{/}" class="btn btn-secondary">На главную</a>
     </div>
   </div>
 
-  <!-- Форма поиска и фильтрации (для всех) -->
+  <!-- Форма поиска и фильтрации -->
   <div class="card mb-4">
     <div class="card-header">
       <h5>Фильтры</h5>
     </div>
     <div class="card-body">
       <form method="get" action="/products" class="row g-3">
-        <!-- Поиск по названию -->
         <div class="col-md-4">
           <label for="search" class="form-label">Поиск по названию</label>
           <input type="text" class="form-control" id="search" name="search"
                  th:value="${searchQuery}">
         </div>
 
-        <!-- Фильтр по категории -->
         <div class="col-md-3">
           <label for="categoryId" class="form-label">Категория</label>
           <select class="form-select" id="categoryId" name="categoryId">
@@ -42,7 +77,6 @@
           </select>
         </div>
 
-        <!-- Кнопки -->
         <div class="col-md-3 d-flex align-items-end">
           <button type="submit" class="btn btn-primary me-2">Применить</button>
           <a th:href="@{/products}" class="btn btn-secondary">Сброс</a>
@@ -59,7 +93,9 @@
       <th>Цена</th>
       <th>Категория</th>
       <th>Описание</th>
-      <th th:if="${isAdmin}">Действия</th>  <!-- Колонка действий только для админа -->
+      <th>Рейтинг</th>
+      <th>Отзывы</th>
+      <th th:if="${isAdmin}">Действия</th>
     </tr>
     </thead>
     <tbody>
@@ -68,18 +104,24 @@
       <td th:text="${product.price} + ' ₽'"></td>
       <td th:text="${product.category?.name}"></td>
       <td th:text="${product.description}"></td>
+
+      <!-- Рейтинг -->
+      <td>
+        <div class="rating-stars" th:text="${product.getRatingStars()}"></div>
+        <span class="rating-number" th:text="'(' + ${#numbers.formatDecimal(product.averageRating, 1, 1)} + ')'"></span>
+      </td>
+
+      <!-- Отзывы -->
+      <td>
+        <a th:href="@{/products/{id}/reviews(id=${product.id})}"
+           class="btn btn-sm btn-outline-info">
+          👁️ Смотреть отзывы
+        </a>
+      </td>
+
       <td th:if="${isAdmin}">
         <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-sm btn-warning">Редактировать</a>
         <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-sm btn-danger">Удалить</a>
-      </td>
-      <td th:unless="${isAdmin}">
-        <form th:action="@{/cart/add}" method="post" class="d-flex">
-          <input type="hidden" name="productId" th:value="${product.id}">
-          <input type="number" name="quantity" value="1" min="1"
-                 class="form-control me-2" style="width: 80px;">
-          <button type="submit" class="btn btn-sm btn-success">В корзину</button>
-        </form>
-      </td>
       </td>
     </tr>
     </tbody>
@@ -91,6 +133,17 @@
     <p class="mb-0">Попробуйте изменить параметры поиска.</p>
   </div>
 </div>
+
+<script>
+  function toggleReviews(productId) {
+    var reviewsDiv = document.getElementById('reviews-' + productId);
+    if (reviewsDiv.style.display === 'none') {
+      reviewsDiv.style.display = 'block';
+    } else {
+      reviewsDiv.style.display = 'none';
+    }
+  }
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -62,4 +62,19 @@ public class Product {
                 .count();
     }
 
+    public String getRatingStars() {
+        double rating = getAverageRating();
+        int fullStars = (int) rating;
+        boolean halfStar = rating - fullStars >= 0.5;
+
+        StringBuilder stars = new StringBuilder();
+        for (int i = 0; i < fullStars; i++) {
+            stars.append("⭐");
+        }
+        if (halfStar) {
+            stars.append("✨"); // половинка звезды
+        }
+        return stars.toString();
+    }
+
 }
